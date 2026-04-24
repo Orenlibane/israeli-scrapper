@@ -166,6 +166,13 @@ td {
   padding-right: 16px;
 }
 
+.link-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
 /* ── Badges ─────────────────────────────── */
 .badge {
   display: inline-block;
@@ -178,8 +185,8 @@ td {
   &.owner { background: #1e3a5f; color: #60a5fa; margin-top: 4px; display: block; width: fit-content; }
 
   &.mkt {
-    &.green { background: #064e3b; color: #6ee7b7; }
-    &.blue  { background: #1e3a5f; color: #93c5fd; }
+    &.green { background: rgba(16,185,129,0.12); color: #6ee7b7; }
+    &.blue  { background: var(--blue-dim); color: #93c5fd; }
     &.gray  { background: var(--elevated); color: var(--muted); }
     &.red   { background: var(--red-dim); color: #fca5a5; }
   }
@@ -285,6 +292,29 @@ td {
 
     &.sold   { background: rgba(16,185,129,0.15); color: var(--green); border: 1px solid rgba(16,185,129,0.3); }
     &.active { background: var(--elevated); color: var(--dim); border: 1px solid var(--border); }
+  }
+}
+
+/* ── WhatsApp share ─────────────────────── */
+.share-wa {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  background: rgba(37,211,102,0.07);
+  border: 1px solid rgba(37,211,102,0.2);
+  border-radius: 7px;
+  color: #25d366;
+  text-decoration: none;
+  transition: background 0.12s, border-color 0.12s;
+  flex-shrink: 0;
+
+  svg { width: 14px; height: 14px; }
+
+  &:hover {
+    background: rgba(37,211,102,0.15);
+    border-color: #25d366;
   }
 }
 

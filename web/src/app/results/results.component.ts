@@ -119,4 +119,28 @@ export class ResultsComponent implements OnChanges {
     if (!p) return '—'
     return new Intl.NumberFormat('he-IL').format(p) + ' ₪'
   }
+
+  whatsAppUrl(l: Listing): string {
+    const isDeal = l.comparison && l.comparison.pctDiff <= -5
+    const icon = isDeal ? (l.comparison!.pctDiff <= -15 ? '🔥' : '📉') : '🏠'
+    const rooms = l.rooms ? `${l.rooms}r` : ''
+    const sqm   = l.areaSqm ? ` · ${Math.round(l.areaSqm)}m²` : ''
+    const fl    = l.floor != null ? ` · fl.${l.floor}` : ''
+    const city  = [l.cityRaw, l.neighborhoodRaw].filter(Boolean).join(', ')
+    const price = this.formatPrice(l.priceNis)
+    const sqmP  = l.pricePerSqm ? ` (${new Intl.NumberFormat('he-IL').format(l.pricePerSqm)} ₪/m²)` : ''
+
+    let text = `${icon} ${rooms}${sqm}${fl}\n📍 ${city}\n💰 ${price}${sqmP}`
+
+    if (isDeal && l.comparison) {
+      const pct = Math.abs(l.comparison.pctDiff).toFixed(1)
+      const src = l.comparison.benchmarkSource === 'sold_transactions' ? ' (vs sold prices)' : ''
+      text += `\n📉 ${pct}% below market${src}`
+    }
+
+    if (l.sourceUrl) text += `\n🔗 ${l.sourceUrl}`
+    text += '\n— via Nadlan Scout'
+
+    return `https://wa.me/?text=${encodeURIComponent(text)}`
+  }
 }
