@@ -1,0 +1,11 @@
+[phases.setup]
+nixPkgs = ["nodejs_20"]
+
+[phases.install]
+cmds = ["npm i -g pnpm", "pnpm install --frozen-lockfile"]
+
+[phases.build]
+cmds = ["sed -i \"s|__API_URL__|${API_URL:-http://localhost:3000}|g\" src/environments/environment.production.ts", "pnpm build"]
+
+[start]
+cmd = "npx serve dist/web/browser -l ${PORT:-4200} --no-clipboard"

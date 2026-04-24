@@ -19,6 +19,29 @@ NADLAN_API  = "https://www.nadlan.gov.il/Nadlan.REST/Main/GetAssestAndDeals"
 NADLAN_HOME = "https://www.nadlan.gov.il/"
 POLITE_SLEEP = 2.0
 
+# Central street addresses used as geocoding seeds for each city DB ID.
+# Multiple seeds per city = broader neighbourhood coverage.
+CITY_SEEDS: dict[int, list[str]] = {
+    70:   ["שדרות ירושלים 60, אשדוד", "שדרות העצמאות 30, אשדוד"],
+    650:  ["שדרות הציונות 45, אשקלון", "שדרות אנדלוסיה 20, אשקלון"],
+    1200: ["שדרות יצחק רבין 3, מודיעין"],
+    3000: ["יפו 87, ירושלים", "בן יהודה 17, ירושלים", "המלך ג'ורג' 30, ירושלים"],
+    4000: ["הרצל 55, חיפה", "שדרות הנשיא 40, חיפה"],
+    5000: ["דיזנגוף 99, תל אביב", "אלנבי 58, תל אביב", "בן יהודה 44, תל אביב"],
+    6200: ["ז'בוטינסקי 25, בני ברק", "רבי עקיבא 80, בני ברק"],
+    6300: ["בן גוריון 30, בת ים", "ביאליק 40, בת ים"],
+    6400: ["הרצל 36, הרצליה", "שדרות בן גוריון 20, הרצליה"],
+    6600: ["שדרות ירושלים 75, חולון", "גולדה מאיר 30, חולון"],
+    6900: ["ז'בוטינסקי 46, כפר סבא", "בן גוריון 22, כפר סבא"],
+    7400: ["הרצל 44, נתניה", "שדרות ויצמן 18, נתניה"],
+    7900: ["ז'בוטינסקי 52, פתח תקווה", "שדרות הגבורה 28, פתח תקווה"],
+    8300: ["ז'בוטינסקי 76, ראשון לציון", "ביאליק 33, ראשון לציון"],
+    8400: ["הרצל 40, רחובות", "ביאליק 22, רחובות"],
+    8600: ["ביאליק 43, רמת גן", "ז'בוטינסקי 88, רמת גן"],
+    8700: ["ז'בוטינסקי 38, רעננה", "אחוזה 80, רעננה"],
+    9000: ["שדרות רגר 90, באר שבע", "שדרות בן גוריון 42, באר שבע"],
+}
+
 
 async def _bootstrap_session() -> dict[str, str]:
     """
@@ -132,7 +155,7 @@ def _fetch_deals_page(
     return r.json()
 
 
-def _normalize_deal(raw: dict[str, Any], source_address: str) -> dict[str, Any]:
+def _normalize_deal(raw: dict[str, Any], source_address: str, city_id: int | None = None, city_name: str | None = None) -> dict[str, Any]:
     now = datetime.now(timezone.utc).isoformat()
     deal_id = (
         f"{raw.get('DEALDATETIME','')}_{raw.get('GUSH','')}_{raw.get('HELKA','')}_{raw.get('DEALAMOUNT','')}"
@@ -159,7 +182,8 @@ def _normalize_deal(raw: dict[str, Any], source_address: str) -> dict[str, Any]:
         "floor": floor,
         "total_floors": int(raw["BUILDINGFLOORS"]) if raw.get("BUILDINGFLOORS") else None,
         "year_built": int(raw["BUILDINGYEAR"]) if raw.get("BUILDINGYEAR") else None,
-        "city": None,
+        "city": city_name,
+        "city_id": city_id,
         "street": raw.get("ADDRESS") or source_address,
         "lat": None,
         "lon": None,
@@ -174,16 +198,12 @@ def _normalize_deal(raw: dict[str, Any], source_address: str) -> dict[str, Any]:
 
 
 async def fetch_sold_transactions(address: str, max_pages: int = 10) -> list[dict[str, Any]]:
-    """
-    Fetch sold transactions near the given Hebrew address.
-    Bootstraps a Playwright session first, then uses httpx for pagination.
-    """
+    """Fetch sold transactions near a single address. Bootstraps Playwright each call."""
     print(f"[nadlan] Bootstrapping browser session...", flush=True)
     headers = await _bootstrap_session()
     print(f"[nadlan] Session ready. Geocoding: {address}", flush=True)
 
     results: list[dict[str, Any]] = []
-
     with httpx.Client(headers=headers) as client:
         geocoded = _geocode(address, client)
         if not geocoded:
@@ -213,3 +233,76 @@ async def fetch_sold_transactions(address: str, max_pages: int = 10) -> list[dic
             time.sleep(POLITE_SLEEP)
 
     return results
+
+
+async def fetch_transactions_for_cities(
+    city_requests: list[dict],      # [{cityId, cityNameHe}]
+    max_pages_per_seed: int = 5,
+) -> list[dict[str, Any]]:
+    """
+    Bulk-fetch sold transactions for multiple cities.
+    Bootstraps Playwright ONCE and reuses the session across all cities.
+    Deduplicates by (gush, helka, date, price).
+    Only returns transactions from the last 24 months.
+    """
+    cutoff_ts = datetime.now(timezone.utc).timestamp() - 2 * 365 * 86_400
+
+    print(f"[nadlan] Bootstrapping browser session for bulk fetch ({len(city_requests)} cities)…", flush=True)
+    headers = await _bootstrap_session()
+    print(f"[nadlan] Session ready.", flush=True)
+
+    all_results: list[dict[str, Any]] = []
+    seen_ids: set[str] = set()
+
+    with httpx.Client(headers=headers) as client:
+        for req in city_requests:
+            city_id   = req.get("cityId")
+            city_name = req.get("cityNameHe", "")
+            seeds     = CITY_SEEDS.get(city_id, [city_name])
+
+            for address in seeds:
+                geocoded = _geocode(address, client)
+                if not geocoded:
+                    print(f"[nadlan] No geocode for: {address}", flush=True)
+                    time.sleep(POLITE_SLEEP)
+                    continue
+
+                print(f"[nadlan] {city_name} — geocoded '{address}' → {geocoded.get('Value')}", flush=True)
+                time.sleep(POLITE_SLEEP)
+
+                for page in range(1, max_pages_per_seed + 1):
+                    try:
+                        data = _fetch_deals_page(client, geocoded, page)
+                    except ValueError as e:
+                        print(f"[nadlan] Non-JSON response (session expired?): {e}", flush=True)
+                        break
+
+                    page_results = data.get("AllResults") or []
+                    if not page_results:
+                        break
+
+                    for raw in page_results:
+                        # Filter transactions older than 24 months
+                        date_str = raw.get("DEALDATETIME")
+                        if date_str:
+                            try:
+                                tx_ts = datetime.fromisoformat(date_str.replace("Z", "+00:00")).timestamp()
+                                if tx_ts < cutoff_ts:
+                                    continue
+                            except Exception:
+                                pass
+
+                        # Deduplicate by natural key
+                        key = f"{raw.get('GUSH')}_{raw.get('HELKA')}_{raw.get('DEALDATETIME')}_{raw.get('DEALAMOUNT')}"
+                        if key in seen_ids:
+                            continue
+                        seen_ids.add(key)
+
+                        all_results.append(_normalize_deal(raw, address, city_id, city_name))
+
+                    time.sleep(POLITE_SLEEP)
+
+            print(f"[nadlan] {city_name}: done ({len(all_results)} total so far)", flush=True)
+
+    print(f"[nadlan] Bulk fetch complete — {len(all_results)} unique transactions", flush=True)
+    return all_results

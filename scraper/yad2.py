@@ -1,6 +1,9 @@
 """
 Yad2 listing scraper.
-Uses curl_cffi with Chrome TLS impersonation to bypass Cloudflare + ShieldSquare.
+Uses curl_cffi with Chrome TLS impersonation to bypass Cloudflare.
+
+Uses the /feed endpoint (not /map) which returns all paginated listings.
+Map endpoint only shows ~200 clustered markers per page; feed shows all listings.
 """
 from __future__ import annotations
 
@@ -8,16 +11,15 @@ import random
 import re
 import time
 from datetime import datetime, timezone
-from typing import Any, Iterator
+from typing import Any
 
 try:
     from curl_cffi import requests as cc
 except ImportError as e:
     raise ImportError("pip install curl_cffi") from e
 
-API_HOST  = "https://gw.yad2.co.il"
-WEB_HOST  = "https://www.yad2.co.il"
-PROFILES  = ["chrome120", "chrome124", "chrome131", "safari17_0"]
+API_HOST = "https://gw.yad2.co.il"
+WEB_HOST = "https://www.yad2.co.il"
 
 _DEFAULT_HEADERS = {
     "Accept": "application/json, text/plain, */*",
@@ -26,11 +28,34 @@ _DEFAULT_HEADERS = {
     "Origin": WEB_HOST,
 }
 
+# Maps our DB city IDs to (yad2_city_id, area_id, region_id).
+# city/area/region IDs verified via Yad2 autocomplete API.
+# Note: Yad2 city IDs differ from our DB city IDs in some cases.
+CITY_MAP: dict[int, tuple[str, int, int]] = {
+    5000: ("5000", 1,  3),   # Tel Aviv
+    3000: ("3000", 7,  6),   # Jerusalem
+    4000: ("4000", 5,  5),   # Haifa
+    8300: ("8300", 9,  1),   # Rishon LeZion
+    7900: ("7900", 4,  1),   # Petah Tikva
+    70:   ("0070", 21, 2),   # Ashdod (DB=70, Yad2=0070)
+    7400: ("7400", 17, 1),   # Netanya
+    9000: ("9000", 22, 2),   # Beer Sheva
+    6600: ("6600", 11, 3),   # Holon
+    6200: ("6100", 78, 1),   # Bnei Brak (DB=6200, Yad2=6100)
+    8600: ("8600", 3,  3),   # Ramat Gan
+    6400: ("6400", 18, 1),   # Herzliya
+    6900: ("6900", 42, 1),   # Kfar Saba
+    8400: ("8400", 12, 1),   # Rehovot
+    1200: ("1200", 8,  1),   # Modi'in
+    8700: ("8700", 42, 1),   # Ra'anana
+    650:  ("7100", 21, 2),   # Ashkelon (DB=650, Yad2=7100)
+    6300: ("6200", 11, 3),   # Bat Yam (DB=6300, Yad2=6200)
+}
 
-def _session(profile: str = "chrome120") -> cc.Session:
+
+def _session() -> cc.Session:
     s = cc.Session()
     s.headers.update(_DEFAULT_HEADERS)
-    s._profile = profile
     return s
 
 
@@ -57,40 +82,46 @@ def _norm_rooms(raw: Any) -> float | None:
 
 
 def _normalize(item: dict[str, Any], deal_type: str) -> dict[str, Any]:
-    item_id = item.get("id") or item.get("token")
-    coords  = item.get("coordinates") or {}
-    customer = item.get("customer") or {}
-    poster_type = "agent" if (item.get("merchant") or customer.get("agency_name")) else "owner"
-    row2 = item.get("row_2") or ""
-    city  = row2.split(",")[0].strip() or None
-    nbhd  = row2.split(",", 1)[1].strip() if "," in row2 else None
-    now   = datetime.now(timezone.utc).isoformat()
+    addr    = item.get("address") or {}
+    coords  = addr.get("coords") or {}
+    details = item.get("additionalDetails") or {}
+    prop    = details.get("property") or {}
+    house   = addr.get("house") or {}
 
+    city         = (addr.get("city") or {}).get("text")
+    neighborhood = (addr.get("neighborhood") or {}).get("text")
+    street       = (addr.get("street") or {}).get("text")
+    floor_raw    = house.get("floor")
+
+    token = item.get("token")
     price = _norm_price(item.get("price"))
-    area  = float(item["square_meter"]) if item.get("square_meter") else None
+    rooms = _norm_rooms(details.get("roomsCount"))
+    area  = float(details["squareMeter"]) if details.get("squareMeter") else None
+
     price_per_sqm = round(price / area) if price and area else None
+    poster_type   = "owner" if item.get("adType") == "private" else "agent"
+    now           = datetime.now(timezone.utc).isoformat()
 
     return {
-        "listing_id": f"yad2:{item_id}",
-        "source_site": "yad2",
-        "source_url": f"{WEB_HOST}/item/{item_id}" if item_id else None,
-        "price_nis": price,
+        "listing_id":    f"yad2:{token}",
+        "source_site":   "yad2",
+        "source_url":    f"{WEB_HOST}/item/{token}" if token else None,
+        "price_nis":     price,
         "price_per_sqm": price_per_sqm,
-        "price_type": "asking_rent" if deal_type == "rent" else "asking_sale",
-        "deal_type": "rent" if deal_type == "rent" else "sale",
-        "property_type": item.get("HomeTypeID_text") or "apartment",
-        "rooms": _norm_rooms(item.get("rooms")),
-        "area_sqm": area,
-        "floor": int(item["floor"]) if str(item.get("floor", "")).isdigit() else None,
-        "city": city,
-        "neighborhood": nbhd,
-        "street": item.get("row_3"),
-        "lat": coords.get("latitude"),
-        "lon": coords.get("longitude"),
-        "poster_type": poster_type,
-        "published_at": item.get("date_added"),
-        "first_seen": now,
-        "last_seen": now,
+        "deal_type":     "rent" if deal_type == "rent" else "sale",
+        "property_type": prop.get("text") or "דירה",
+        "rooms":         rooms,
+        "area_sqm":      area,
+        "floor":         int(floor_raw) if floor_raw is not None else None,
+        "city":          city,
+        "neighborhood":  neighborhood,
+        "street":        street,
+        "lat":           coords.get("lat"),
+        "lon":           coords.get("lon"),
+        "poster_type":   poster_type,
+        "published_at":  None,
+        "first_seen":    now,
+        "last_seen":     now,
     }
 
 
@@ -104,17 +135,25 @@ def scrape(
     max_sqm: int | None = None,
     min_rooms: float | None = None,
     max_rooms: float | None = None,
-    top_area: int | None = None,
     max_pages: int = 20,
-    rate_s: float = 3.0,
+    rate_s: float = 2.0,
 ) -> list[dict[str, Any]]:
-    """Scrape Yad2 listings for a city/neighborhood with optional filters."""
+    """Scrape Yad2 listings using the /feed endpoint (all paginated listings)."""
 
-    params: dict[str, Any] = {"city": city_id, "property": "1"}
+    city_info = CITY_MAP.get(city_id)
+    if not city_info:
+        print(f"[yad2] Unknown city_id={city_id}.", flush=True)
+        return []
+
+    yad2_city_id, area_id, region_id = city_info
+
+    params: dict[str, Any] = {
+        "city":   yad2_city_id,
+        "area":   area_id,
+        "region": region_id,
+    }
     if neighborhood_id:
         params["neighborhood"] = neighborhood_id
-    if top_area:
-        params["topArea"] = top_area
     if min_price or max_price:
         lo = min_price or -1
         hi = max_price or -1
@@ -128,49 +167,64 @@ def scrape(
         hi = max_rooms or ""
         params["rooms"] = f"{lo}-{hi}" if (lo and hi) else str(lo or hi)
 
-    session  = _session()
-    results: list[dict[str, Any]] = []
+    yad2_deal = "rent" if deal_type == "rent" else "forsale"
+    session   = _session()
+    results:  list[dict[str, Any]] = []
+    seen_tokens: set[str] = set()
+    total_pages = max_pages  # will be updated from first response
 
     for page in range(1, max_pages + 1):
         params["page"] = page
         from urllib.parse import urlencode
-        url = f"{API_HOST}/realestate-feed/{deal_type}/map?{urlencode(params)}"
+        url = f"{API_HOST}/realestate-feed/{yad2_deal}/feed?{urlencode(params)}"
 
         try:
-            r = session.get(url, impersonate=session._profile, timeout=20)
+            r = session.get(url, impersonate="chrome120", timeout=20)
         except Exception as e:
-            print(f"[yad2] Request error on page {page}: {e}", flush=True)
+            print(f"[yad2] Request error page {page}: {e}", flush=True)
             break
 
         if r.status_code == 403:
-            print(f"[yad2] 403 — Cloudflare block on page {page}. Try switching profile.", flush=True)
+            print(f"[yad2] 403 page {page} — Cloudflare block.", flush=True)
             break
-        if r.status_code != 200:
-            print(f"[yad2] HTTP {r.status_code} on page {page}", flush=True)
+        if r.status_code not in (200,):
+            print(f"[yad2] HTTP {r.status_code} page {page}: {r.text[:200]}", flush=True)
             break
 
         try:
             payload = r.json()
         except Exception:
-            print(f"[yad2] Non-JSON response on page {page} (anti-bot page?)", flush=True)
+            print(f"[yad2] Non-JSON page {page}", flush=True)
             break
 
-        feed  = (payload.get("data") or {}).get("feed") or {}
-        items = feed.get("feed_items") or []
-        if not items:
-            break
+        data = payload.get("data") or {}
 
-        for raw in items:
-            if not (raw.get("id") or raw.get("token")):
+        # Update total pages from first response
+        if page == 1:
+            pagination = data.get("pagination") or {}
+            server_pages = pagination.get("totalPages", max_pages)
+            total_pages = min(server_pages, max_pages)
+            total_listings = pagination.get("total", "?")
+            print(f"[yad2] city={yad2_city_id} total={total_listings} pages={server_pages} (fetching {total_pages})", flush=True)
+
+        # Combine private + agency listings (feed splits them)
+        items = list(data.get("private") or []) + list(data.get("agency") or [])
+
+        new_count = 0
+        for item in items:
+            token = item.get("token")
+            if not token or token in seen_tokens:
                 continue
-            results.append(_normalize(raw, deal_type))
+            seen_tokens.add(token)
+            results.append(_normalize(item, deal_type))
+            new_count += 1
 
-        total_pages = feed.get("total_pages") or 1
-        print(f"[yad2] Page {page}/{min(total_pages, max_pages)}: +{len(items)} listings", flush=True)
+        print(f"[yad2] page {page}/{total_pages}: {len(items)} items, +{new_count} new (total {len(results)})", flush=True)
 
-        if page >= min(total_pages, max_pages):
+        if page >= total_pages:
             break
 
-        time.sleep(rate_s + random.uniform(0, 1.0))
+        if page < total_pages:
+            time.sleep(rate_s + random.uniform(0, 1.0))
 
     return results

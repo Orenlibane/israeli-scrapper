@@ -47,7 +47,7 @@ async def scrape(params: ScrapeParams):
                 max_sqm=params.maxSqm,
                 min_rooms=params.minRooms,
                 max_rooms=params.maxRooms,
-                max_pages=20,
+                max_pages=40,
                 rate_s=3.0,
             ),
         )
@@ -58,13 +58,36 @@ async def scrape(params: ScrapeParams):
 
 @app.post("/sold-transactions")
 async def sold_transactions(body: dict[str, Any]):
-    """Fetch sold transactions from nadlan.gov.il for market comparison."""
+    """Fetch sold transactions near a single address."""
     from nadlan import fetch_sold_transactions
     address = body.get("address")
     if not address:
         raise HTTPException(status_code=400, detail="address required")
     try:
         results = await fetch_sold_transactions(address, max_pages=body.get("maxPages", 5))
+        return {"transactions": results, "count": len(results)}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+class BulkCityRequest(BaseModel):
+    cities: list[dict]          # [{cityId, cityNameHe}]
+    maxPagesPerSeed: int = 5
+
+
+@app.post("/sold-transactions-bulk")
+async def sold_transactions_bulk(params: BulkCityRequest):
+    """
+    Bulk-fetch sold transactions for all supplied cities.
+    Bootstraps Playwright once, queries each city's seed addresses,
+    deduplicates, and returns transactions from the last 24 months.
+    """
+    from nadlan import fetch_transactions_for_cities
+    try:
+        results = await fetch_transactions_for_cities(
+            params.cities,
+            max_pages_per_seed=params.maxPagesPerSeed,
+        )
         return {"transactions": results, "count": len(results)}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

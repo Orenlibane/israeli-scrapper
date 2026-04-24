@@ -243,18 +243,36 @@
     }
 
     .changelog-entry {
-      margin-bottom: 20px;
+      margin-bottom: 24px;
     }
 
     .changelog-date {
       font-size: 11px;
       color: #475569;
-      margin-bottom: 4px;
+      margin-bottom: 6px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
     }
 
-    .changelog-msg {
+    .changelog-entry ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .changelog-entry ul li {
       font-size: 13.5px;
       color: #cbd5e1;
+      display: flex;
+      gap: 10px;
+    }
+
+    .changelog-entry ul li::before {
+      content: '·';
+      color: #3b82f6;
+      flex-shrink: 0;
     }
 
     .dot {
@@ -273,16 +291,16 @@
   <div class="header">
     <h1>🏠 Israeli Nadlan Scraper — Development Progress</h1>
     <p>Real-time tracking of the build. Updated every time Claude pushes changes.</p>
-    <span class="last-updated">Last updated: 2026-04-24 (build 3)</span>
+    <span class="last-updated">Last updated: 2026-04-25 (build 7)</span>
   </div>
 
   <!-- Overall Progress -->
   <div class="overall-bar-wrap">
     <h2>Overall MVP Progress</h2>
     <div class="progress-bar">
-      <div class="progress-bar-fill" style="width: 75%"></div>
+      <div class="progress-bar-fill" style="width: 97%"></div>
     </div>
-    <div class="progress-pct">75% complete — all services running, scan endpoint live</div>
+    <div class="progress-pct">97% complete — fully deployed on Railway: scraper, API, web UI, Telegram bot, comparison engine, dashboard, hourly deal alerts</div>
   </div>
 
   <!-- Phase grid -->
@@ -293,99 +311,47 @@
     <div class="phase">
       <div class="phase-header">
         <span class="phase-title">Phase 1 — MVP</span>
-        <span class="phase-badge badge-active">Active</span>
+        <span class="phase-badge badge-done">Done</span>
       </div>
-      <div class="phase-bar"><div class="phase-bar-fill" style="width:65%"></div></div>
+      <div class="phase-bar"><div class="phase-bar-fill" style="width:100%"></div></div>
       <ul class="phase-items">
-        <li>
-          <span class="icon icon-done">✓</span>
-          <span class="item-done">PRD written + tech stack decided</span>
-        </li>
-        <li>
-          <span class="icon icon-done">✓</span>
-          <span class="item-done">Monorepo scaffold (api / web / scraper)</span>
-        </li>
-        <li>
-          <span class="icon icon-done">✓</span>
-          <span class="item-done">PostgreSQL schema + Prisma (cities, neighborhoods, listings, jobs)</span>
-        </li>
-        <li>
-          <span class="icon icon-done">✓</span>
-          <span class="item-done">Yad2 scraper — curl_cffi TLS impersonation</span>
-        </li>
-        <li>
-          <span class="icon icon-done">✓</span>
-          <span class="item-done">nadlan.gov.il — Playwright session bootstrap + httpx</span>
-        </li>
-        <li>
-          <span class="icon icon-done">✓</span>
-          <span class="item-done">Python scraper microservice (FastAPI)</span>
-        </li>
-        <li>
-          <span class="icon icon-done">✓</span>
-          <span class="item-done">Node.js API — cities, listings, jobs routes (Fastify)</span>
-        </li>
-        <li>
-          <span class="icon icon-done">✓</span>
-          <span class="item-done">pg-boss job queue wired to scraper</span>
-        </li>
-        <li>
-          <span class="icon icon-done">✓</span>
-          <span class="item-done">Angular UI — search form + results table (builds clean)</span>
-        </li>
-        <li>
-          <span class="icon icon-done">✓</span>
-          <span class="item-done">Local DB setup (PostgreSQL via Homebrew) + seed — 18 cities, 13 neighborhoods</span>
-        </li>
-        <li>
-          <span class="icon icon-done">✓</span>
-          <span class="item-done">All 3 services running (API :3000, scraper :8001, Angular :4200)</span>
-        </li>
-        <li>
-          <span class="icon icon-done">✓</span>
-          <span class="item-done">Fixed: Zod coerce for cityId string→number from Angular select</span>
-        </li>
-        <li>
-          <span class="icon icon-wip">~</span>
-          <span class="item-wip">First live Yad2 scan end-to-end</span>
-        </li>
-        <li>
-          <span class="icon icon-todo">·</span>
-          <span class="item-todo">Railway deploy (API + scraper + Postgres)</span>
-        </li>
-        <li>
-          <span class="icon icon-todo">·</span>
-          <span class="item-todo">Telegram bot (grammY) — setup flow + alerts</span>
-        </li>
-        <li>
-          <span class="icon icon-todo">·</span>
-          <span class="item-todo">Bull Queue job scheduler</span>
-        </li>
-        <li>
-          <span class="icon icon-todo">·</span>
-          <span class="item-todo">Basic job logging</span>
-        </li>
+        <li><span class="icon icon-done">✓</span><span class="item-done">PRD written + tech stack decided</span></li>
+        <li><span class="icon icon-done">✓</span><span class="item-done">Monorepo scaffold (api / web / scraper)</span></li>
+        <li><span class="icon icon-done">✓</span><span class="item-done">PostgreSQL schema + Prisma (cities, neighborhoods, listings, jobs, comparisons)</span></li>
+        <li><span class="icon icon-done">✓</span><span class="item-done">Yad2 scraper — curl_cffi TLS impersonation</span></li>
+        <li><span class="icon icon-done">✓</span><span class="item-done">Python scraper microservice (FastAPI)</span></li>
+        <li><span class="icon icon-done">✓</span><span class="item-done">Node.js API — Fastify (cities, listings, jobs, deals, stats)</span></li>
+        <li><span class="icon icon-done">✓</span><span class="item-done">pg-boss job queue + daily scheduler (06:00 Israel time)</span></li>
+        <li><span class="icon icon-done">✓</span><span class="item-done">Angular UI — search, results table, opportunities, dashboard, about</span></li>
+        <li><span class="icon icon-done">✓</span><span class="item-done">Railway deploy — all 3 services live in production</span></li>
+        <li><span class="icon icon-done">✓</span><span class="item-done">Telegram bot — webhook, 5 commands (/search, /top, /stats, /cities, /help)</span></li>
+        <li><span class="icon icon-done">✓</span><span class="item-done">Telegram hourly top-deals digest (outlier-filtered)</span></li>
       </ul>
     </div>
 
-    <!-- Phase 2 -->
+    <!-- Phase 2: Enrichment -->
     <div class="phase">
       <div class="phase-header">
         <span class="phase-title">Phase 2 — Enrichment</span>
-        <span class="phase-badge badge-planned">Planned</span>
+        <span class="phase-badge badge-active">Active</span>
       </div>
-      <div class="phase-bar"><div class="phase-bar-fill" style="width:0%"></div></div>
+      <div class="phase-bar"><div class="phase-bar-fill" style="width:55%"></div></div>
       <ul class="phase-items">
-        <li><span class="icon icon-todo">·</span><span class="item-todo">Madlan GraphQL scraper</span></li>
-        <li><span class="icon icon-todo">·</span><span class="item-todo">Multiple profiles per user</span></li>
-        <li><span class="icon icon-todo">·</span><span class="item-todo">Opportunity score + market comparison</span></li>
+        <li><span class="icon icon-done">✓</span><span class="item-done">Market comparison engine — p10/p90 trimming, median ₪/m², classification</span></li>
+        <li><span class="icon icon-done">✓</span><span class="item-done">Opportunities tab — deals sorted by biggest discount with "why" explanation</span></li>
+        <li><span class="icon icon-done">✓</span><span class="item-done">Outlier detection — data-error guards (priceNis ≥ ₪50K, ⚠️ badges for &lt;-35% / -60%)</span></li>
+        <li><span class="icon icon-done">✓</span><span class="item-done">Dashboard — KPI cards, classification distribution bars, city deal leaderboard</span></li>
+        <li><span class="icon icon-done">✓</span><span class="item-done">Advanced search filters — floor, ₪/m², property type, poster type, freshness</span></li>
+        <li><span class="icon icon-done">✓</span><span class="item-done">Sort options — price, ₪/m², size, rooms, floor, days on market, best deal</span></li>
+        <li><span class="icon icon-done">✓</span><span class="item-done">Neighborhood filter fix — query by neighborhoodRaw text (scraper doesn't set FK)</span></li>
+        <li><span class="icon icon-wip">~</span><span class="item-wip">Madlan GraphQL scraper — second data source</span></li>
         <li><span class="icon icon-todo">·</span><span class="item-todo">Hebrew address normalization + geo proximity</span></li>
-        <li><span class="icon icon-todo">·</span><span class="item-todo">Daily summary mode</span></li>
         <li><span class="icon icon-todo">·</span><span class="item-todo">Cross-source deduplication</span></li>
+        <li><span class="icon icon-todo">·</span><span class="item-todo">Daily email/Telegram summary report</span></li>
       </ul>
     </div>
 
-    <!-- Phase 3 -->
+    <!-- Phase 3: Admin -->
     <div class="phase">
       <div class="phase-header">
         <span class="phase-title">Phase 3 — Admin UI</span>
@@ -393,16 +359,15 @@
       </div>
       <div class="phase-bar"><div class="phase-bar-fill" style="width:0%"></div></div>
       <ul class="phase-items">
-        <li><span class="icon icon-todo">·</span><span class="item-todo">Angular admin dashboard</span></li>
-        <li><span class="icon icon-todo">·</span><span class="item-todo">Source health monitoring</span></li>
+        <li><span class="icon icon-todo">·</span><span class="item-todo">Source health monitoring (scraper errors, yield rate)</span></li>
         <li><span class="icon icon-todo">·</span><span class="item-todo">Grafana + Prometheus observability</span></li>
-        <li><span class="icon icon-todo">·</span><span class="item-todo">Neighborhood market analytics</span></li>
-        <li><span class="icon icon-todo">·</span><span class="item-todo">Returned listing detection</span></li>
-        <li><span class="icon icon-todo">·</span><span class="item-todo">Source auto-blocklist on errors</span></li>
+        <li><span class="icon icon-todo">·</span><span class="item-todo">Returned listing detection (re-listed after going inactive)</span></li>
+        <li><span class="icon icon-todo">·</span><span class="item-todo">Source auto-blocklist on repeated errors</span></li>
+        <li><span class="icon icon-todo">·</span><span class="item-todo">Price history chart per listing</span></li>
       </ul>
     </div>
 
-    <!-- Phase 4 -->
+    <!-- Phase 4: Scale -->
     <div class="phase">
       <div class="phase-header">
         <span class="phase-title">Phase 4 — Scale</span>
@@ -411,10 +376,10 @@
       <div class="phase-bar"><div class="phase-bar-fill" style="width:0%"></div></div>
       <ul class="phase-items">
         <li><span class="icon icon-todo">·</span><span class="item-todo">Homeless + Komo scrapers</span></li>
-        <li><span class="icon icon-todo">·</span><span class="item-todo">Performance optimization</span></li>
         <li><span class="icon icon-todo">·</span><span class="item-todo">Telegram Mini App settings UI</span></li>
-        <li><span class="icon icon-todo">·</span><span class="item-todo">Advanced template management</span></li>
-        <li><span class="icon icon-todo">·</span><span class="item-todo">Rental monitoring (future)</span></li>
+        <li><span class="icon icon-todo">·</span><span class="item-todo">Multi-user support + user profiles</span></li>
+        <li><span class="icon icon-todo">·</span><span class="item-todo">Per-user alert filters (city, rooms, price range)</span></li>
+        <li><span class="icon icon-todo">·</span><span class="item-todo">Performance optimization (caching, CDN)</span></li>
       </ul>
     </div>
 
@@ -422,63 +387,49 @@
 
   <!-- Tech Stack -->
   <div class="stack-section">
-    <div class="section-title" style="margin-top:0">Tech Stack</div>
+    <div class="section-title" style="margin-top:0">Tech Stack (Deployed)</div>
     <div class="stack-grid">
       <div class="stack-pill"><span>Backend</span> Node.js + Fastify</div>
-      <div class="stack-pill"><span>Scraping</span> axios + Playwright (fallback)</div>
-      <div class="stack-pill"><span>Queue</span> Bull Queue + Redis</div>
+      <div class="stack-pill"><span>Queue</span> pg-boss (PostgreSQL-backed)</div>
       <div class="stack-pill"><span>Database</span> PostgreSQL + Prisma</div>
-      <div class="stack-pill"><span>Telegram</span> grammY</div>
-      <div class="stack-pill"><span>Frontend</span> Angular</div>
-      <div class="stack-pill"><span>Hosting</span> Railway</div>
-      <div class="stack-pill"><span>Monitoring</span> Grafana + Prometheus</div>
+      <div class="stack-pill"><span>Scraping</span> Python + curl_cffi TLS impersonation</div>
+      <div class="stack-pill"><span>Telegram</span> Webhook bot (native fetch)</div>
+      <div class="stack-pill"><span>Frontend</span> Angular 17 standalone</div>
+      <div class="stack-pill"><span>Hosting</span> Railway (3 services)</div>
+      <div class="stack-pill"><span>Scheduler</span> pg-boss cron (daily scan + hourly alerts)</div>
     </div>
   </div>
 
-  <!-- Gaps -->
+  <!-- Known Gaps -->
   <div class="gap-section">
-    <div class="section-title" style="margin-top:0">Known Gaps / Decisions Pending</div>
+    <div class="section-title" style="margin-top:0">Remaining Gaps</div>
     <div class="gap-grid">
       <div class="gap-card">
         <div class="gap-icon">⚠️</div>
         <div>
-          <h4>Yad2 TLS bypass in Node.js</h4>
-          <p>Yad2 uses Cloudflare + TLS fingerprinting. The israeli-nadlan-scraper skill uses Python's curl_cffi. For Node.js, need curl-impersonate or a small Python sidecar for Yad2 requests.</p>
+          <h4>Comparison data quality</h4>
+          <p>Comparisons use active listing prices, not sold transactions. The priceNis ≥ ₪50K guard removes most data errors, but extreme outliers can still appear when sparse peer groups skew the median.</p>
         </div>
       </div>
       <div class="gap-card">
         <div class="gap-icon">⚠️</div>
         <div>
-          <h4>No Angular skill</h4>
-          <p>Admin UI in Angular has no dedicated skill. Will use standard Angular docs and general patterns. MVP doesn't need the UI — bot commands cover setup.</p>
+          <h4>Neighborhood FK not set by scraper</h4>
+          <p>Scheduled scans don't set neighborhoodId FK on listings (only neighborhoodRaw text). Filter now queries by text match, but FK consistency is missing. Workaround: retroactive backfill job.</p>
         </div>
       </div>
       <div class="gap-card">
         <div class="gap-icon">⚠️</div>
         <div>
-          <h4>Geocoding / geo proximity</h4>
-          <p>Comparing listings to nearby sold transactions requires geo coordinates. Plan: OpenStreetMap Nominatim API (free, no key) or Google Maps API.</p>
+          <h4>Single data source</h4>
+          <p>Only Yad2 is scraped. Madlan and other sources would increase coverage and comparison accuracy, especially for sparse city+room combinations.</p>
         </div>
       </div>
       <div class="gap-card">
         <div class="gap-icon">❓</div>
         <div>
-          <h4>Open: Multi-user vs single-user MVP</h4>
-          <p>Should MVP support multiple users from day 1, or start as a personal tool and add multi-tenancy in Phase 2?</p>
-        </div>
-      </div>
-      <div class="gap-card">
-        <div class="gap-icon">❓</div>
-        <div>
-          <h4>Open: Opportunity threshold</h4>
-          <p>Send ALL listings that pass hard filters, or only those above a minimum score? To decide before building the alert engine.</p>
-        </div>
-      </div>
-      <div class="gap-card">
-        <div class="gap-icon">❓</div>
-        <div>
-          <h4>Open: Yad2 starting neighborhoods</h4>
-          <p>Need Hebrew neighborhood codes for initial supported cities. Covered by israeli-real-estate skill, but need to pick the target cities first.</p>
+          <h4>Hourly digest frequency</h4>
+          <p>Top deals are sent to Telegram every hour. This may be noisy. Consider batching to every 2–4 hours or only sending when new deals appear since last digest.</p>
         </div>
       </div>
     </div>
@@ -488,27 +439,72 @@
   <div class="changelog-section">
     <div class="section-title" style="margin-top:0">Changelog</div>
     <div class="changelog">
+
+      <div class="changelog-entry">
+        <div class="changelog-date">2026-04-25 — Build 7</div>
+        <ul>
+          <li><strong>Sort options</strong>: Added 8 new sort keys — Longest on market, Size (small/large), Rooms (fewest/most), Floor (low/high), plus existing Price/₪m²/Best deal.</li>
+          <li><strong>Neighborhood filter fix</strong>: Scheduled scans never set the <code>neighborhoodId</code> FK — only <code>neighborhoodRaw</code> text. Listings route now looks up the Hebrew name for the selected neighborhood ID and filters by <code>neighborhoodRaw ILIKE '%name%'</code>. Filter works immediately.</li>
+          <li><strong>Hourly Telegram deals digest</strong>: <code>notifyTopDeals()</code> added to telegram service — fetches top 8 deals (<code>pctDiff ≥ -60</code>, isActive), formats with price/rooms/sqm/floor/discount/age, broadcasts every hour. Deals between -35% and -60% flagged with ⚠️.</li>
+          <li><strong>Dashboard stats</strong>: <code>GET /api/stats</code> returns total listings, compared, new-today, classification distribution, and top-10 city deal leaderboard with avgDaysListed.</li>
+        </ul>
+      </div>
+
+      <div class="changelog-entry">
+        <div class="changelog-date">2026-04-25 — Build 6</div>
+        <ul>
+          <li><strong>UI redesign deployed</strong>: Fixed Angular budget error (anyComponentStyle 4kb → 24kb) that was silently failing Railway builds. Added <code>.dockerignore</code> + Dockerfile cache bust to force rebuild.</li>
+          <li><strong>Market comparison engine</strong>: <code>comparison-worker.ts</code> groups listings by city+dealType+room-bucket, trims p10/p90 outliers, computes median ₪/m², classifies each listing (deal / below_market / at_market / overpriced). Runs via <code>POST /api/jobs/compute-comparisons</code> and daily cron at 07:30 Israel time.</li>
+          <li><strong>Opportunities tab</strong>: <code>GET /api/deals</code> returns deal+below_market listings ordered by pctDiff ASC. UI shows "why it's a deal" explanation: ₪/m² vs median, comparable count, city.</li>
+          <li><strong>Dashboard tab</strong>: 4 KPI cards, CSS classification distribution bars, city deal leaderboard (deal count, avg discount, avg days listed).</li>
+          <li><strong>Advanced search filters</strong>: Added floor range, ₪/m² range, property type (8 Hebrew types), poster type (owner/agent), freshness (24h/3d/week/month). Preset buttons for common values.</li>
+          <li><strong>Outlier detection</strong>: <code>priceNis ≥ ₪50K</code> guard in comparison worker. ⚠️ "Verify" badge for &lt;-35%, "Data error?" badge for &lt;-60% in the results table.</li>
+          <li><strong>About tab</strong>: Documents data source, comparison algorithm with classification table, Telegram commands, and how to use the app.</li>
+        </ul>
+      </div>
+
+      <div class="changelog-entry">
+        <div class="changelog-date">2026-04-24 — Build 5</div>
+        <ul>
+          <li><strong>Railway deploy</strong>: All 3 services live — API (<code>api-production-1488.up.railway.app</code>), scraper (internal), web UI. PostgreSQL Postgres plugin auto-injects DATABASE_URL. Prisma migrations run on startup.</li>
+          <li><strong>pg-boss scheduler</strong>: Daily scan of 18 cities × 2 deal types staggered 40s apart (≈24 min sweep). Mark-stale at 03:30 UTC. Comparison engine at 04:30 UTC.</li>
+          <li><strong>Telegram bot</strong>: Webhook registered at <code>/telegram/webhook</code>. Commands: /help, /cities, /search &lt;city&gt; [rooms] [sale|rent], /top &lt;city&gt;, /stats. City aliases for Hebrew + English names. Queries live DB via Prisma, formats and sends replies.</li>
+          <li><strong>Price drop alerts</strong>: <code>notifyPriceDrop()</code> fires when scraper sees a lower price on an existing listing.</li>
+          <li><strong>New listing alerts</strong>: <code>notifyNewListing()</code> fires on first-seen listings.</li>
+        </ul>
+      </div>
+
+      <div class="changelog-entry">
+        <div class="changelog-date">2026-04-24 — Build 4</div>
+        <ul>
+          <li><strong>Fixed Yad2 API</strong>: Yad2 changed their API — <code>topArea</code> rejected, replaced by <code>region</code>. Response format changed from <code>data.feed.feed_items[]</code> to <code>data.markers[]</code> with new field schema.</li>
+          <li><strong>Rebuilt yad2.py</strong>: New <code>CITY_MAP</code> maps DB city IDs to (yad2_city_id, region). Rewrote <code>_normalize()</code> for new marker schema. Smart pagination stops when no new tokens found.</li>
+          <li><strong>Fixed workers.ts</strong>: Worker now passes <code>cityId</code> into <code>upsertListing()</code> so listings get the DB city FK. Without this, city filter returned nothing.</li>
+          <li><strong>Result</strong>: Full end-to-end scan — 226 Ashkelon listings in DB, visible in Angular UI.</li>
+        </ul>
+      </div>
+
       <div class="changelog-entry">
         <div class="changelog-date">2026-04-24 — Build 3</div>
-        <div class="changelog-msg">
-          <span class="dot"></span>
-          All services running locally. Fixed 500 error on POST /api/jobs/scan — Zod schema now uses z.coerce.number() so Angular's string values from &lt;select&gt; are coerced correctly. Scan endpoint returns jobId. PostgreSQL seeded. Progress tracker updated.
-        </div>
+        <ul>
+          <li>All services running locally. Fixed 500 on POST /api/jobs/scan — Zod schema uses <code>z.coerce.number()</code> so Angular string values from &lt;select&gt; are coerced. PostgreSQL seeded.</li>
+        </ul>
       </div>
+
       <div class="changelog-entry">
         <div class="changelog-date">2026-04-24 — Build 2</div>
-        <div class="changelog-msg">
-          <span class="dot"></span>
-          Full MVP scaffold built: pnpm monorepo (api / web / scraper). Prisma schema (cities, neighborhoods, listings, history, sold_transactions, jobs). Fastify API with cities, listings, jobs routes + pg-boss queue. Python scraper microservice — Yad2 via curl_cffi TLS impersonation + nadlan.gov.il via Playwright session bootstrap + httpx. Angular 17 app — search form (city, neighborhood, filters), results table with market classification badges, pagination. Angular builds clean, TypeScript 0 errors. Next: local DB setup, seed, end-to-end test.
-        </div>
+        <ul>
+          <li>Full MVP scaffold: pnpm monorepo (api / web / scraper). Prisma schema. Fastify API. Python scraper microservice — Yad2 via curl_cffi + nadlan.gov.il via Playwright. Angular 17 app — search form + results table. Angular builds clean, 0 TS errors.</li>
+        </ul>
       </div>
+
       <div class="changelog-entry">
         <div class="changelog-date">2026-04-24 — Build 1</div>
-        <div class="changelog-msg">
-          <span class="dot"></span>
-          Project initialized. PRD converted from Hebrew DOCX to Markdown. Tech stack decided (Node.js + Fastify, pg-boss, Railway, Angular). WhatsApp replaced with Telegram. progress.html created. Repo cloned to GitHub.
-        </div>
+        <ul>
+          <li>Project initialized. PRD converted from Hebrew DOCX. Tech stack decided (Node.js + Fastify, pg-boss, Railway, Angular). WhatsApp replaced with Telegram. progress.html created.</li>
+        </ul>
       </div>
+
     </div>
   </div>
 

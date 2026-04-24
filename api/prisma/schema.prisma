@@ -69,6 +69,7 @@ model SoldTransaction {
   id              String   @id
   address         String
   cityRaw         String?
+  cityId          Int?
   lat             Float?
   lon             Float?
   priceNis        Int
@@ -92,6 +93,8 @@ model ListingComparison {
   medianPricePerSqm Int
   pctDiff          Float             // negative = below market
   classification   String            // "deal" | "below_market" | "at_market" | "overpriced"
+  benchmarkSource  String   @default("active_listings")  // "sold_transactions" | "active_listings"
+  soldComparables  Int      @default(0)
   computedAt       DateTime @default(now())
 }
 

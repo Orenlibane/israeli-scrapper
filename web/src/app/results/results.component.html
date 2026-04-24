@@ -1,8 +1,65 @@
-<div class="results-header">
-  <h2>{{ total | number }} listings found</h2>
-  <span class="page-info">Page {{ page }} of {{ totalPages }}</span>
+<!-- Stats bar -->
+<div class="stats-bar">
+  <div class="stat">
+    <span class="stat-val">{{ total | number }}</span>
+    <span class="stat-lbl">{{ opportunitiesMode ? 'deals' : 'listings' }}</span>
+  </div>
+  @if (avgPrice) {
+    <div class="stat-divider"></div>
+    <div class="stat">
+      <span class="stat-val">{{ formatPrice(avgPrice) }}</span>
+      <span class="stat-lbl">avg price</span>
+    </div>
+  }
+  @if (avgSqmPrice) {
+    <div class="stat-divider"></div>
+    <div class="stat">
+      <span class="stat-val">{{ avgSqmPrice | number }} ₪/m²</span>
+      <span class="stat-lbl">avg ₪/m²</span>
+    </div>
+  }
+  @if (opportunitiesMode && avgDiscount) {
+    <div class="stat-divider"></div>
+    <div class="stat fresh">
+      <span class="stat-val">{{ avgDiscount }}%</span>
+      <span class="stat-lbl">avg discount</span>
+    </div>
+  }
+  @if (!opportunitiesMode && freshCount) {
+    <div class="stat-divider"></div>
+    <div class="stat fresh">
+      <span class="stat-val">{{ freshCount }}</span>
+      <span class="stat-lbl">new today</span>
+    </div>
+  }
+
+  <div class="spacer"></div>
+
+  <div class="sort-control">
+    <span class="sort-lbl">Sort</span>
+    <select [(ngModel)]="sortKey" (ngModelChange)="resort()">
+      @if (opportunitiesMode) {
+        <option value="best_deal">Best deal first</option>
+      }
+      <option value="newest">Newest first</option>
+      <option value="oldest">Longest on market</option>
+      <option value="price_asc">Price: low → high</option>
+      <option value="price_desc">Price: high → low</option>
+      <option value="sqm_asc">₪/m²: low → high</option>
+      <option value="sqm_desc">₪/m²: high → low</option>
+      <option value="size_asc">Size: small → large</option>
+      <option value="size_desc">Size: large → small</option>
+      <option value="rooms_asc">Rooms: fewest first</option>
+      <option value="rooms_desc">Rooms: most first</option>
+      <option value="floor_asc">Floor: low → high</option>
+      <option value="floor_desc">Floor: high → low</option>
+    </select>
+  </div>
+
+  <div class="page-info">{{ page }} / {{ totalPages }}</div>
 </div>
 
+<!-- Table -->
 <div class="table-wrap">
   <table>
     <thead>
@@ -11,47 +68,112 @@
         <th>Price</th>
         <th>₪/m²</th>
         <th>Rooms</th>
-        <th>sqm</th>
+        <th>Size</th>
         <th>Floor</th>
-        <th>Days</th>
+        <th>Listed</th>
         <th>Market</th>
-        <th>Source</th>
+        @if (opportunitiesMode) { <th>Why it's a deal</th> }
+        <th></th>
       </tr>
     </thead>
     <tbody>
-      @for (l of listings; track l.id) {
-        <tr>
-          <td class="location">
+      @for (l of sorted; track l.id) {
+        <tr [class.fresh-row]="l.daysOnMarket <= 3" [class.deal-row]="l.comparison?.classification === 'deal'">
+          <td class="cell-location">
             <div class="city">{{ l.cityRaw }}</div>
-            <div class="nbhd">{{ l.neighborhoodRaw }}</div>
-            <div class="street">{{ l.street }}</div>
+            @if (l.neighborhoodRaw) { <div class="nbhd">{{ l.neighborhoodRaw }}</div> }
+            @if (l.street)          { <div class="street">{{ l.street }}</div> }
           </td>
-          <td class="price">
-            {{ formatPrice(l.priceNis) }}
+
+          <td class="cell-price">
+            <div class="price-main">{{ formatPrice(l.priceNis) }}</div>
             @if (l.posterType === 'owner') {
               <span class="badge owner">Owner</span>
             }
           </td>
-          <td class="sqm-price">
-            {{ l.pricePerSqm ? (l.pricePerSqm | number) + ' ₪' : '—' }}
+
+          <td class="cell-sqm">{{ formatSqmPrice(l.pricePerSqm) }}</td>
+
+          <td class="cell-num">{{ l.rooms ?? '—' }}</td>
+
+          <td class="cell-num">
+            {{ l.areaSqm ? (l.areaSqm | number:'1.0-0') + ' m²' : '—' }}
           </td>
-          <td>{{ l.rooms ?? '—' }}</td>
-          <td>{{ l.areaSqm ? (l.areaSqm | number:'1.0-0') + ' m²' : '—' }}</td>
-          <td>{{ l.floor ?? '—' }}</td>
-          <td [class.fresh]="l.daysOnMarket <= 3">{{ l.daysOnMarket }}d</td>
-          <td>
+
+          <td class="cell-num">{{ l.floor !== null && l.floor !== undefined ? l.floor : '—' }}</td>
+
+          <td class="cell-days" [class.fresh]="l.daysOnMarket <= 3">
+            @if (l.daysOnMarket <= 3) {
+              <span class="new-badge">NEW</span>
+            } @else {
+              {{ l.daysOnMarket }}d
+            }
+          </td>
+
+          <td class="cell-market">
             @if (l.comparison) {
-              <span class="badge" [ngClass]="classColor(l.comparison.classification)">
+              <span class="badge mkt" [ngClass]="classColor(l.comparison.classification)">
                 {{ classLabel(l.comparison.classification) }}
               </span>
-              <div class="pct">{{ l.comparison.pctDiff > 0 ? '+' : '' }}{{ l.comparison.pctDiff | number:'1.1-1' }}%</div>
+              <div class="pct" [class.positive]="l.comparison.pctDiff < 0">
+                {{ l.comparison.pctDiff > 0 ? '+' : '' }}{{ l.comparison.pctDiff | number:'1.1-1' }}%
+              </div>
+              @if (l.comparison.pctDiff < -60) {
+                <span class="outlier-badge error">⚠ Data error?</span>
+              } @else if (l.comparison.pctDiff < -35) {
+                <span class="outlier-badge warn">⚠ Verify</span>
+              }
             } @else {
               <span class="dim">—</span>
             }
           </td>
-          <td>
+
+          @if (opportunitiesMode) {
+            <td class="cell-why">
+              @if (l.comparison) {
+                @if (l.comparison.pctDiff < -60) {
+                  <div class="outlier-block error">
+                    <strong>Likely data error</strong>
+                    <span>{{ l.comparison.pctDiff | number:'1.1-1' }}% vs median is unrealistic — verify the listing price before acting.</span>
+                  </div>
+                } @else if (l.comparison.pctDiff < -35) {
+                  <div class="outlier-block warn">
+                    <strong>Unusually deep discount</strong>
+                    <span>{{ l.comparison.pctDiff | number:'1.1-1' }}% — double-check the listing details.</span>
+                  </div>
+                  @if (l.pricePerSqm) {
+                    <div class="why-line">
+                      <span class="why-sqm">₪{{ l.pricePerSqm | number }} /m²</span>
+                      <span class="why-vs">vs median</span>
+                      <span class="why-median">₪{{ l.comparison.medianPricePerSqm | number }}</span>
+                    </div>
+                    <div class="why-meta">{{ l.comparison.numTransactions }} comparables · {{ l.cityRaw }}</div>
+                  }
+                } @else if (l.pricePerSqm) {
+                  <div class="why-line">
+                    <span class="why-sqm">₪{{ l.pricePerSqm | number }} /m²</span>
+                    <span class="why-vs">vs median</span>
+                    <span class="why-median">₪{{ l.comparison.medianPricePerSqm | number }}</span>
+                  </div>
+                  <div class="why-meta">
+                    @if (l.comparison.benchmarkSource === 'sold_transactions') {
+                      <span class="src-badge sold">✓ Sold prices</span> {{ l.comparison.soldComparables }} transactions
+                    } @else {
+                      <span class="src-badge active">Active listings</span> {{ l.comparison.numTransactions }} comparables
+                    }
+                    · {{ l.cityRaw }}
+                  </div>
+                }
+              }
+            </td>
+          }
+
+          <td class="cell-link">
             @if (l.sourceUrl) {
-              <a [href]="l.sourceUrl" target="_blank" rel="noopener">View →</a>
+              <a [href]="l.sourceUrl" target="_blank" rel="noopener" class="view-btn">
+                View
+                <svg viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </a>
             }
           </td>
         </tr>
@@ -60,10 +182,15 @@
   </table>
 </div>
 
+<!-- Pagination -->
 @if (totalPages > 1) {
   <div class="pagination">
-    <button (click)="pageChange.emit(page - 1)" [disabled]="page <= 1">← Prev</button>
-    <span>{{ page }} / {{ totalPages }}</span>
-    <button (click)="pageChange.emit(page + 1)" [disabled]="page >= totalPages">Next →</button>
+    <button (click)="pageChange.emit(page - 1)" [disabled]="page <= 1" class="page-btn">← Prev</button>
+    <div class="page-nums">
+      @for (p of pageRange; track p) {
+        <button class="page-num" [class.active]="p === page" (click)="pageChange.emit(p)">{{ p }}</button>
+      }
+    </div>
+    <button (click)="pageChange.emit(page + 1)" [disabled]="page >= totalPages" class="page-btn">Next →</button>
   </div>
 }

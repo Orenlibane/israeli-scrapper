@@ -1,26 +1,59 @@
-[build]
-builder = "NIXPACKS"
-
+# ── API ──────────────────────────────────────────────────────────────────────
 [[services]]
 name = "api"
 source = "api"
 
 [services.build]
-buildCommand = "npm install && npx prisma generate && npm run build"
-startCommand = "node dist/index.js"
+buildCommand = "pnpm install && npx prisma generate && pnpm build"
+startCommand = "npx prisma migrate deploy && node dist/index.js"
 
+[services.deploy]
+healthcheckPath    = "/api/cities"
+healthcheckTimeout = 30
+restartPolicyType  = "ON_FAILURE"
+restartPolicyMaxRetries = 3
+
+[services.variables]
+PORT     = "3000"
+NODE_ENV = "production"
+# DATABASE_URL      → set in Railway dashboard (auto-injected by Postgres plugin)
+# SCRAPER_URL       → set to internal Railway URL of the scraper service
+# TELEGRAM_BOT_TOKEN → set in Railway dashboard
+# TELEGRAM_CHAT_ID  → set in Railway dashboard
+
+# ── SCRAPER ──────────────────────────────────────────────────────────────────
 [[services]]
 name = "scraper"
 source = "scraper"
 
 [services.build]
-buildCommand = "pip install -r requirements.txt && playwright install chromium"
-startCommand = "uvicorn main:app --host 0.0.0.0 --port 8001"
+buildCommand = "pip install -r requirements.txt && playwright install chromium --with-deps"
+startCommand = "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8001}"
 
+[services.deploy]
+healthcheckPath    = "/health"
+healthcheckTimeout = 60
+restartPolicyType  = "ON_FAILURE"
+restartPolicyMaxRetries = 3
+
+[services.variables]
+PORT = "8001"
+
+# ── WEB ──────────────────────────────────────────────────────────────────────
 [[services]]
 name = "web"
 source = "web"
 
 [services.build]
-buildCommand = "npm install && npm run build"
-startCommand = "npx serve dist/web/browser -l 4200"
+buildCommand = "sh build.sh"
+startCommand = "npx serve dist/web/browser -l ${PORT:-4200} --no-clipboard"
+
+[services.deploy]
+healthcheckPath    = "/"
+healthcheckTimeout = 30
+restartPolicyType  = "ON_FAILURE"
+restartPolicyMaxRetries = 3
+
+[services.variables]
+NODE_ENV = "production"
+# API_URL → set in Railway dashboard to the deployed api service public URL

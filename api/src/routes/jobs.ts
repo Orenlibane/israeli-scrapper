@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { prisma } from '../index'
+import { computeComparisons } from '../jobs/comparison-worker'
 
 const ScanParamsSchema = z.object({
   cityId: z.coerce.number(),
@@ -25,6 +26,17 @@ export async function jobsRoute(app: FastifyInstance) {
 
     reply.code(202)
     return { jobId: job.id, status: 'pending' }
+  })
+
+  // Manual trigger: runs synchronously and returns results immediately
+  app.post('/api/jobs/compute-comparisons', async (req, reply) => {
+    try {
+      const { processed, skipped } = await computeComparisons(prisma)
+      return { status: 'done', processed, skipped }
+    } catch (err) {
+      reply.code(500)
+      return { error: String(err) }
+    }
   })
 
   app.get<{ Params: { id: string } }>('/api/jobs/:id', async (req) => {

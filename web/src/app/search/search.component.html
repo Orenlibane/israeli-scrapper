@@ -1,85 +1,462 @@
-<div class="panel">
-  <h2>Search Filters</h2>
-
-  <div class="grid">
-    <div class="field">
-      <label>City</label>
-      <select [(ngModel)]="params.cityId" (change)="onCityChange()">
-        <option [value]="0" disabled>Select city...</option>
-        @for (c of cities; track c.id) {
-          <option [value]="c.id">{{ c.nameHe }} ({{ c.name }})</option>
-        }
-      </select>
-    </div>
-
-    <div class="field">
-      <label>Neighborhood</label>
-      <select [(ngModel)]="params.neighborhoodId" [disabled]="!neighborhoods.length">
-        <option [value]="undefined">All neighborhoods</option>
-        @for (n of neighborhoods; track n.id) {
-          <option [value]="n.id">{{ n.nameHe }} ({{ n.name }})</option>
-        }
-      </select>
-    </div>
-
-    <div class="field">
-      <label>Deal Type</label>
-      <select [(ngModel)]="params.dealType">
-        <option value="sale">For Sale</option>
-        <option value="rent">For Rent</option>
-      </select>
-    </div>
-
-    <div class="field">
-      <label>Min Price (₪)</label>
-      <input type="number" [(ngModel)]="params.minPrice" placeholder="e.g. 2000000" />
-    </div>
-
-    <div class="field">
-      <label>Max Price (₪)</label>
-      <input type="number" [(ngModel)]="params.maxPrice" placeholder="e.g. 5000000" />
-    </div>
-
-    <div class="field">
-      <label>Min sqm</label>
-      <input type="number" [(ngModel)]="params.minSqm" placeholder="e.g. 60" />
-    </div>
-
-    <div class="field">
-      <label>Max sqm</label>
-      <input type="number" [(ngModel)]="params.maxSqm" placeholder="e.g. 120" />
-    </div>
-
-    <div class="field">
-      <label>Min Rooms</label>
-      <input type="number" step="0.5" [(ngModel)]="params.minRooms" placeholder="e.g. 3" />
-    </div>
-
-    <div class="field">
-      <label>Max Rooms</label>
-      <input type="number" step="0.5" [(ngModel)]="params.maxRooms" placeholder="e.g. 5" />
-    </div>
-  </div>
-
-  <div class="actions">
-    <button class="btn-primary" (click)="scan()" [disabled]="scanning || !params.cityId">
-      {{ scanning ? 'Scanning...' : '🔍 Scan Yad2 Now' }}
-    </button>
-    <button class="btn-secondary" (click)="loadListings()" [disabled]="!params.cityId">
-      📋 Show Saved Results
-    </button>
-    @if (scanStatus) {
-      <span class="status" [class.error]="scanStatus.startsWith('Failed')">{{ scanStatus }}</span>
-    }
-  </div>
+<!-- ── Top nav ──────────────────────────────────────── -->
+<div class="top-nav">
+  <button class="nav-tab" [class.active]="mode === 'search'" (click)="switchMode('search')">
+    <svg viewBox="0 0 20 20" fill="none"><circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.6"/><path d="M14 14l3 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+    Search
+  </button>
+  <button class="nav-tab" [class.active]="mode === 'opportunities'" (click)="switchMode('opportunities')">
+    <svg viewBox="0 0 20 20" fill="none"><path d="M10 2l2.39 4.84L18 7.64l-4 3.9.94 5.5L10 14.27l-4.94 2.77.94-5.5L2 7.64l5.61-.8L10 2z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+    Opportunities
+  </button>
+  <button class="nav-tab" [class.active]="mode === 'dashboard'" (click)="switchMode('dashboard')">
+    <svg viewBox="0 0 20 20" fill="none"><rect x="2" y="2" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="11" y="2" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="2" y="11" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="11" y="11" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/></svg>
+    Dashboard
+  </button>
+  <button class="nav-tab" [class.active]="mode === 'about'" (click)="switchMode('about')">
+    <svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.6"/><path d="M10 9v5M10 7v.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    About
+  </button>
 </div>
 
-@if (listings.length > 0) {
-  <app-results
-    [listings]="listings"
-    [total]="total"
-    [page]="page"
-    [pageSize]="50"
-    (pageChange)="changePage($event)"
-  />
+<!-- ── Dashboard ───────────────────────────────────── -->
+@if (mode === 'dashboard') {
+  @if (loadingStats) {
+    <div class="dash-loading">
+      <span class="spinner-dark"></span> Loading stats…
+    </div>
+  } @else if (stats) {
+    <div class="dash-page">
+
+      <!-- KPI cards -->
+      <div class="dash-kpis">
+        <div class="kpi-card">
+          <div class="kpi-val">{{ stats.totalListings | number }}</div>
+          <div class="kpi-lbl">Active listings</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-val">{{ stats.totalWithComparisons | number }}</div>
+          <div class="kpi-lbl">Compared</div>
+        </div>
+        <div class="kpi-card fresh">
+          <div class="kpi-val">{{ stats.recentListings | number }}</div>
+          <div class="kpi-lbl">New today</div>
+        </div>
+        <div class="kpi-card deal">
+          <div class="kpi-val">{{ totalDeals | number }}</div>
+          <div class="kpi-lbl">Deals found</div>
+        </div>
+      </div>
+
+      <div class="dash-grid">
+
+        <!-- Distribution -->
+        <div class="dash-card">
+          <div class="dash-card-header">
+            <svg viewBox="0 0 20 20" fill="none"><path d="M3 15l4-6 4 3 3-5 3 2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <h3>Classification breakdown</h3>
+          </div>
+          <div class="dist-list">
+            @for (d of stats.distribution; track d.classification) {
+              <div class="dist-row">
+                <div class="dist-meta">
+                  <span class="badge mkt" [ngClass]="classColor(d.classification)">{{ classLabel(d.classification) }}</span>
+                  <span class="dist-count">{{ d.count | number }}</span>
+                  <span class="dist-pct">{{ distributionPct(d.count) }}%</span>
+                </div>
+                <div class="dist-bar-bg">
+                  <div class="dist-bar" [ngClass]="classColor(d.classification)"
+                       [style.width.%]="distributionPct(d.count)"></div>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- City leaderboard -->
+        <div class="dash-card">
+          <div class="dash-card-header">
+            <svg viewBox="0 0 20 20" fill="none"><path d="M10 2l1.8 3.6L16 6.4l-3 2.9.7 4.1-3.7-2-3.7 2 .7-4.1-3-2.9 4.2-.8L10 2z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+            <h3>Top cities by deals</h3>
+          </div>
+          <div class="leader-table">
+            <div class="leader-head">
+              <span>City</span>
+              <span>Deals</span>
+              <span>Avg discount</span>
+              <span>Avg days listed</span>
+            </div>
+            @for (c of stats.topDealCities; track c.cityRaw; let i = $index) {
+              <div class="leader-row">
+                <span class="leader-rank">{{ i + 1 }}</span>
+                <span class="leader-city">{{ c.cityRaw }}</span>
+                <span class="leader-deals">{{ c.dealCount }}</span>
+                <span class="leader-discount">-{{ c.avgDiscount }}%</span>
+                <span class="leader-days">{{ c.avgDaysListed }}d</span>
+              </div>
+            }
+          </div>
+        </div>
+
+      </div>
+    </div>
+  }
+}
+
+<!-- ── About page ──────────────────────────────────── -->
+@if (mode === 'about') {
+  <div class="about-page">
+    <div class="about-hero">
+      <h1>Nadlan Scout</h1>
+      <p class="about-tagline">Real-time Yad2 market intelligence — find undervalued apartments before everyone else.</p>
+    </div>
+    <div class="about-grid">
+      <div class="about-card">
+        <div class="about-card-icon">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <h3>Where does the data come from?</h3>
+        <p>All listings are scraped directly from <strong>Yad2</strong> using their pagination API — not screenshots or third-party feeds. 18 major cities are scanned daily at 06:00 AM Israel time.</p>
+        <ul>
+          <li>Up to 40 pages per city, per deal type</li>
+          <li>Private owner + agency listings</li>
+          <li>Price changes tracked over time</li>
+          <li>Listings marked inactive after 48h off-market</li>
+        </ul>
+      </div>
+      <div class="about-card">
+        <div class="about-card-icon amber">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M9 19V6l12-3v13M9 19c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm12 0c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <h3>How does the comparison engine work?</h3>
+        <p>After each scan, the engine groups listings by <strong>city + deal type + room count</strong> and computes a market benchmark:</p>
+        <ol>
+          <li><strong>Peer grouping</strong> — e.g. all 3-room sale apartments in Ashdod</li>
+          <li><strong>Outlier trimming</strong> — removes top and bottom 10% by ₪/m²</li>
+          <li><strong>Median benchmark</strong> — median is more robust than average against manipulation</li>
+          <li><strong>Classification</strong> — each listing is scored vs. the benchmark</li>
+        </ol>
+        <div class="class-table">
+          <div class="class-row"><span class="badge mkt green">Deal</span><span>More than 15% below median</span></div>
+          <div class="class-row"><span class="badge mkt blue">Below</span><span>5–15% below median</span></div>
+          <div class="class-row"><span class="badge mkt gray">Fair</span><span>Within ±5% of median</span></div>
+          <div class="class-row"><span class="badge mkt red">High</span><span>More than 5% above median</span></div>
+        </div>
+        <p class="note">Comparisons are based on active listing prices, not sold transaction data. Use as a relative signal within a market, not an absolute valuation.</p>
+      </div>
+      <div class="about-card">
+        <div class="about-card-icon green">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.95 10.5 19.79 19.79 0 01.88 1.87 2 2 0 012.86 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L7.09 7.91a16 16 0 006 6l.99-.99a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 15.2v1.72z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <h3>Telegram bot</h3>
+        <p><strong>Automatic alerts:</strong> new listings and price drops sent instantly.</p>
+        <div class="cmd-list">
+          <code>/search ashdod 3 sale</code>
+          <code>/top tel aviv rent</code>
+          <code>/stats</code>
+          <code>/cities</code>
+          <code>/help</code>
+        </div>
+      </div>
+      <div class="about-card">
+        <div class="about-card-icon purple">
+          <svg viewBox="0 0 24 24" fill="none"><rect x="2" y="3" width="20" height="14" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M8 21h8M12 17v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </div>
+        <h3>How to use the app</h3>
+        <ol>
+          <li><strong>Search</strong> — pick a city, set filters, click Scan Yad2 for fresh data or Load Results from the DB.</li>
+          <li><strong>Opportunities</strong> — click Run Comparison Engine (~3s), browse deals sorted by biggest discount with a "why" explanation per row.</li>
+          <li><strong>City chips</strong> — switch markets instantly without re-opening the city dropdown.</li>
+        </ol>
+        <p><strong>Tip:</strong> Run a full scan first, then the comparison engine. After that, the daily cron handles everything automatically.</p>
+      </div>
+    </div>
+    <div class="about-footer">Data refreshed daily at 06:00 AM Israel time &nbsp;·&nbsp; Comparison engine runs at 07:30 AM &nbsp;·&nbsp; Source: Yad2.co.il</div>
+  </div>
+}
+
+<!-- ── City rail (Search + Opportunities) ─────────── -->
+@if (mode !== 'about' && mode !== 'dashboard') {
+  <div class="city-rail">
+    <button class="city-chip" [class.active]="params.cityId === 0" (click)="params.cityId = 0; listings = []; total = 0">All</button>
+    @for (c of quickCities; track c.id) {
+      <button class="city-chip" [class.active]="params.cityId === c.id" (click)="selectQuickCity(c.id)">{{ c.label }}</button>
+    }
+  </div>
+}
+
+<!-- ── Search mode ─────────────────────────────────── -->
+@if (mode === 'search') {
+  <div class="filters-card">
+
+    <!-- Row 1: Location + deal type -->
+    <div class="filter-section">
+      <div class="row-primary">
+        <div class="field field--city">
+          <label>City</label>
+          <select [(ngModel)]="params.cityId" (change)="onCityChange()">
+            <option [value]="0" disabled>Select a city…</option>
+            @for (c of cities; track c.id) {
+              <option [value]="c.id">{{ c.nameHe }} · {{ c.name }}</option>
+            }
+          </select>
+        </div>
+        <div class="field field--neighborhood">
+          <label>Neighborhood</label>
+          <select [(ngModel)]="params.neighborhoodId" [disabled]="!neighborhoods.length">
+            <option [value]="undefined">All neighborhoods</option>
+            @for (n of neighborhoods; track n.id) {
+              <option [value]="n.id">{{ n.nameHe }}</option>
+            }
+          </select>
+        </div>
+        <div class="deal-toggle">
+          <button class="toggle-btn" [class.active]="params.dealType === 'sale'" (click)="params.dealType = 'sale'">For Sale</button>
+          <button class="toggle-btn" [class.active]="params.dealType === 'rent'" (click)="params.dealType = 'rent'">For Rent</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="filter-divider"></div>
+
+    <!-- Row 2: Rooms + Property type + Owner only -->
+    <div class="filter-section">
+      <div class="filter-row wrap">
+
+        <div class="filter-group">
+          <span class="filter-label">Rooms</span>
+          <div class="room-chips">
+            @for (r of roomOptions; track r.val) {
+              <button class="chip" [class.selected]="isRoomSelected(r.val)" (click)="toggleRoom(r.val)">{{ r.label }}</button>
+            }
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <span class="filter-label">Property type</span>
+          <div class="room-chips">
+            @for (pt of propertyTypes; track pt.key) {
+              <button class="chip" [class.selected]="selectedPropertyTypes.has(pt.key)" (click)="togglePropertyType(pt.key)">{{ pt.label }}</button>
+            }
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <span class="filter-label">Poster</span>
+          <div class="deal-toggle">
+            <button class="toggle-btn" [class.active]="!params.posterType" (click)="setOwnerOnly(false)">All</button>
+            <button class="toggle-btn" [class.active]="params.posterType === 'owner'" (click)="setOwnerOnly(true)">Owner only</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="filter-divider"></div>
+
+    <!-- Row 3: Price + Price/m² + Size -->
+    <div class="filter-section">
+      <div class="filter-row wrap">
+
+        <div class="filter-group">
+          <span class="filter-label">Price (₪)</span>
+          <div class="range-inputs">
+            <input type="number" [(ngModel)]="params.minPrice" placeholder="Min" />
+            <span class="range-sep">–</span>
+            <input type="number" [(ngModel)]="params.maxPrice" placeholder="Max" />
+          </div>
+          <div class="preset-row">
+            @for (p of (params.dealType === 'rent'
+              ? [{l:'2K',v:2000},{l:'3K',v:3000},{l:'5K',v:5000},{l:'8K',v:8000},{l:'12K',v:12000}]
+              : [{l:'1M',v:1000000},{l:'1.5M',v:1500000},{l:'2M',v:2000000},{l:'3M',v:3000000},{l:'5M',v:5000000}]
+            ); track p.v) {
+              <button class="preset-btn"
+                [class.selected]="params.maxPrice === p.v"
+                (click)="params.maxPrice = params.maxPrice === p.v ? undefined : p.v">
+                ≤{{ p.l }}
+              </button>
+            }
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <span class="filter-label">₪/m²</span>
+          <div class="range-inputs">
+            <input type="number" [(ngModel)]="params.minPricePerSqm" placeholder="Min" />
+            <span class="range-sep">–</span>
+            <input type="number" [(ngModel)]="params.maxPricePerSqm" placeholder="Max" />
+          </div>
+          <div class="preset-row">
+            @for (p of [{l:'8K',v:8000},{l:'12K',v:12000},{l:'16K',v:16000},{l:'20K',v:20000},{l:'25K',v:25000}]; track p.v) {
+              <button class="preset-btn"
+                [class.selected]="params.maxPricePerSqm === p.v"
+                (click)="params.maxPricePerSqm = params.maxPricePerSqm === p.v ? undefined : p.v">
+                ≤{{ p.l }}
+              </button>
+            }
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <span class="filter-label">Size (m²)</span>
+          <div class="range-inputs">
+            <input type="number" [(ngModel)]="params.minSqm" placeholder="Min" />
+            <span class="range-sep">–</span>
+            <input type="number" [(ngModel)]="params.maxSqm" placeholder="Max" />
+          </div>
+          <div class="preset-row">
+            @for (p of [{l:'40',v:40},{l:'60',v:60},{l:'80',v:80},{l:'100',v:100},{l:'120',v:120}]; track p.v) {
+              <button class="preset-btn"
+                [class.selected]="params.minSqm === p.v"
+                (click)="params.minSqm = params.minSqm === p.v ? undefined : p.v">
+                {{ p.l }}+
+              </button>
+            }
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="filter-divider"></div>
+
+    <!-- Row 4: Floor + Freshness -->
+    <div class="filter-section">
+      <div class="filter-row wrap">
+
+        <div class="filter-group">
+          <span class="filter-label">Floor</span>
+          <div class="range-inputs narrow">
+            <input type="number" [(ngModel)]="params.minFloor" placeholder="Min" />
+            <span class="range-sep">–</span>
+            <input type="number" [(ngModel)]="params.maxFloor" placeholder="Max" />
+          </div>
+          <div class="preset-row">
+            @for (p of [{l:'Ground',min:0,max:0},{l:'Low (1–3)',min:1,max:3},{l:'Mid (4–8)',min:4,max:8},{l:'High (9+)',min:9,max:99}]; track p.l) {
+              <button class="preset-btn"
+                [class.selected]="params.minFloor === p.min && params.maxFloor === (p.max === 99 ? undefined : p.max)"
+                (click)="params.minFloor = params.minFloor === p.min ? undefined : p.min; params.maxFloor = params.minFloor !== undefined && p.max !== 99 ? p.max : undefined">
+                {{ p.l }}
+              </button>
+            }
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <span class="filter-label">Listed within</span>
+          <div class="room-chips">
+            @for (f of freshnessOptions; track f.val) {
+              <button class="chip" [class.selected]="params.maxDays === f.val" (click)="setFreshness(f.val)">{{ f.label }}</button>
+            }
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="filter-divider"></div>
+
+    <!-- Row 5: Actions -->
+    <div class="row-actions">
+      <button class="btn-scan" (click)="scan()" [disabled]="scanning || !params.cityId">
+        @if (scanning) {
+          <span class="spinner"></span> Scanning…
+        } @else {
+          <svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M16.5 16.5L21 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          Scan Yad2
+        }
+      </button>
+      <button class="btn-load" (click)="loadListings()" [disabled]="!params.cityId">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        Load Results
+      </button>
+      @if (hasActiveFilters) {
+        <button class="btn-clear" (click)="clearAll()">
+          <svg viewBox="0 0 20 20" fill="none"><path d="M15 5L5 15M5 5l10 10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          Clear filters
+        </button>
+      }
+      @if (scanStatus) {
+        <div class="status-pill" [class.error]="scanStatus.startsWith('Failed')" [class.done]="scanStatus.startsWith('Done')">
+          @if (scanning) { <span class="dot pulse"></span> }
+          @if (!scanning && scanStatus.startsWith('Done')) { <span class="dot done-dot"></span> }
+          {{ scanStatus }}
+        </div>
+      }
+    </div>
+  </div>
+
+  @if (listings.length > 0) {
+    <app-results [listings]="listings" [total]="total" [page]="page" [pageSize]="50" [opportunitiesMode]="false" (pageChange)="changePage($event)" />
+  }
+  @if (!listings.length && scanStatus.startsWith('Done')) {
+    <div class="empty-state">
+      <svg viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="28" stroke="var(--border-hi)" stroke-width="2"/><path d="M22 32h20M22 24h20M22 40h12" stroke="var(--muted)" stroke-width="2" stroke-linecap="round"/></svg>
+      <p>No listings found for these filters.<br>Try broadening your search.</p>
+    </div>
+  }
+}
+
+<!-- ── Opportunities mode ──────────────────────────── -->
+@if (mode === 'opportunities') {
+  <div class="filters-card">
+    <div class="filter-section">
+      <div class="filter-row wrap">
+        <div class="deal-toggle">
+          <button class="toggle-btn" [class.active]="params.dealType === 'sale'" (click)="params.dealType = 'sale'">For Sale</button>
+          <button class="toggle-btn" [class.active]="params.dealType === 'rent'" (click)="params.dealType = 'rent'">For Rent</button>
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">Rooms</span>
+          <div class="room-chips">
+            @for (r of roomOptions; track r.val) {
+              <button class="chip" [class.selected]="isRoomSelected(r.val)" (click)="toggleRoom(r.val)">{{ r.label }}</button>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="filter-divider"></div>
+    <div class="row-actions">
+      <button class="btn-compute" (click)="computeComparisons()" [disabled]="computingComparisons">
+        @if (computingComparisons) {
+          <span class="spinner-dark"></span> Computing…
+        } @else {
+          <svg viewBox="0 0 24 24" fill="none"><path d="M9 19V6l12-3v13M9 19c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm12 0c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Run Comparison Engine
+        }
+      </button>
+      <button class="btn-load" (click)="loadDeals()">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        Load Deals
+      </button>
+      @if (comparisonStatus) {
+        <div class="status-pill" [class.error]="comparisonStatus === 'Failed'" [class.done]="comparisonStatus.startsWith('Done')">
+          @if (computingComparisons) { <span class="dot pulse"></span> }
+          @if (!computingComparisons && comparisonStatus.startsWith('Done')) { <span class="dot done-dot"></span> }
+          {{ comparisonStatus }}
+        </div>
+      }
+    </div>
+  </div>
+
+  @if (listings.length > 0) {
+    <app-results [listings]="listings" [total]="total" [page]="page" [pageSize]="50" [opportunitiesMode]="true" (pageChange)="changePage($event)" />
+  }
+  @if (!listings.length && !computingComparisons && !comparisonStatus) {
+    <div class="opps-intro">
+      <div class="opps-icon">
+        <svg viewBox="0 0 48 48" fill="none">
+          <path d="M24 6l4.24 8.6L38 16.18l-7 6.82 1.65 9.64L24 28.1l-8.65 4.54L17 23l-7-6.82 9.76-1.58L24 6z"
+                stroke="var(--amber)" stroke-width="2" stroke-linejoin="round" fill="rgba(245,158,11,0.1)"/>
+        </svg>
+      </div>
+      <h3>Find undervalued listings</h3>
+      <p>The comparison engine benchmarks each listing against similar properties in the same city and room count, then surfaces those priced below the median.</p>
+      <ol>
+        <li>Run a Scan first (Search tab) to fill the database</li>
+        <li>Click <strong>Run Comparison Engine</strong> — takes ~3 seconds</li>
+        <li>Browse deals sorted by biggest discount, with a "why" per row</li>
+      </ol>
+    </div>
+  }
 }

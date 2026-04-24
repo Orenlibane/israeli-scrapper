@@ -1,0 +1,1 @@
+web: npx serve dist/web/browser -l ${PORT:-4200} --no-clipboard
