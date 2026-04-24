@@ -5,7 +5,7 @@
  *   1. Sold transactions (nadlan.gov.il) — actual paid prices, last 24 months, ≥5 comparables
  *   2. Active listing median — p10-p90 trimmed, ≥5 comparables
  *
- * Each listing is scored against the benchmark and classified.
+ * Sold transactions are matched to listings by cityRaw string (case-insensitive trim).
  */
 
 import type { PrismaClient } from '@prisma/client'
@@ -40,6 +40,10 @@ function classify(pctDiff: number): string {
   return 'overpriced'
 }
 
+function normCity(s: string | null): string {
+  return (s ?? '').trim().toLowerCase()
+}
+
 export async function computeComparisons(
   prisma: PrismaClient,
 ): Promise<{ processed: number; skipped: number }> {
@@ -49,45 +53,48 @@ export async function computeComparisons(
     where: {
       isActive:     true,
       pricePerSqm:  { not: null },
-      cityId:       { not: null },
+      cityRaw:      { not: null },
       rooms:        { not: null },
       priceNis:     { gte: 50_000 },
     },
-    select: { id: true, cityId: true, dealType: true, rooms: true, pricePerSqm: true },
+    select: { id: true, cityRaw: true, dealType: true, rooms: true, pricePerSqm: true },
   })
 
-  type Row = { id: string; cityId: number; dealType: string; rooms: number; pricePerSqm: number }
+  type Row = { id: string; cityRaw: string; dealType: string; rooms: number; pricePerSqm: number }
   const listings = raw as Row[]
 
-  // ── 2. Load recent sold transactions (sale only, last 24 months) ───────────
-  const cityIds = [...new Set(listings.map(l => l.cityId))]
-  const cutoff  = new Date(Date.now() - TWO_YEARS_MS)
+  // ── 2. Load recent sold transactions — match by cityRaw (no cityId needed) ─
+  const cutoff = new Date(Date.now() - TWO_YEARS_MS)
 
   const soldRaw = await prisma.soldTransaction.findMany({
     where: {
-      cityId:          { not: null, in: cityIds },
       pricePerSqm:     { not: null, gte: 1_000 },
       rooms:           { not: null },
+      cityRaw:         { not: null },
       transactionDate: { gte: cutoff },
     },
-    select: { cityId: true, rooms: true, pricePerSqm: true },
+    select: { cityRaw: true, rooms: true, pricePerSqm: true },
   })
 
-  // Group sold transactions by cityId:sale:bucket
+  // Build city name set from listings for fast membership check
+  const listingCities = new Set(listings.map(l => normCity(l.cityRaw)))
+
+  // Group sold transactions by normCity:sale:bucket
   const soldGroups = new Map<string, number[]>()
   for (const tx of soldRaw) {
-    if (!tx.cityId || !tx.rooms || !tx.pricePerSqm) continue
+    const city = normCity(tx.cityRaw)
+    if (!listingCities.has(city) || !tx.rooms || !tx.pricePerSqm) continue
     const bucket = Math.min(5, Math.round(tx.rooms))
-    const key    = `${tx.cityId}:sale:${bucket}`
+    const key    = `${city}::sale::${bucket}`
     if (!soldGroups.has(key)) soldGroups.set(key, [])
     soldGroups.get(key)!.push(tx.pricePerSqm)
   }
 
-  // ── 3. Group active listings ───────────────────────────────────────────────
+  // ── 3. Group active listings by normCity:dealType:bucket ──────────────────
   const groups = new Map<string, Row[]>()
   for (const l of listings) {
     const bucket = Math.min(5, Math.round(l.rooms))
-    const key    = `${l.cityId}:${l.dealType}:${bucket}`
+    const key    = `${normCity(l.cityRaw)}::${l.dealType}::${bucket}`
     if (!groups.has(key)) groups.set(key, [])
     groups.get(key)!.push(l)
   }
@@ -107,23 +114,20 @@ export async function computeComparisons(
 
   // ── 4. Compute benchmark per group ────────────────────────────────────────
   for (const [key, group] of groups.entries()) {
-    let benchmark: { median: number; avg: number; count: number; source: string; soldCount: number }
+    // Derive the sold-transaction lookup key: replace dealType with "sale"
+    const parts   = key.split('::')   // [city, dealType, bucket]
+    const soldKey = `${parts[0]}::sale::${parts[2]}`
 
-    // Try sold transactions first (only meaningful for sale listings)
-    const soldPrices = soldGroups.get(key) ?? []
+    let benchmark: { median: number; avg: number; count: number; source: string; soldCount: number } | null = null
+
+    const soldPrices = soldGroups.get(soldKey) ?? []
     if (soldPrices.length >= MIN_SOLD_COMPARABLES) {
       const s = trimmedStats(soldPrices)
       if (s.count >= MIN_SOLD_COMPARABLES) {
         benchmark = { ...s, source: 'sold_transactions', soldCount: s.count }
-      } else {
-        // sold group too thin after trimming — fall through to active listings
-        benchmark = null as any
       }
-    } else {
-      benchmark = null as any
     }
 
-    // Fall back to active listing median
     if (!benchmark) {
       const activePrices = group.map(l => l.pricePerSqm)
       const s = trimmedStats(activePrices)
@@ -161,7 +165,7 @@ export async function computeComparisons(
   }
 
   const soldBacked = toInsert.filter(t => t.benchmarkSource === 'sold_transactions').length
-  console.log(`[comparisons] ${toInsert.length} classified (${soldBacked} backed by sold tx, ${toInsert.length - soldBacked} by active listings), ${skipped} skipped`)
+  console.log(`[comparisons] ${toInsert.length} classified (${soldBacked} sold-tx backed, ${toInsert.length - soldBacked} active-listing backed), ${skipped} skipped`)
 
   return { processed: toInsert.length, skipped }
 }
