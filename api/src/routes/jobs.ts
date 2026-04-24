@@ -3,14 +3,14 @@ import { z } from 'zod'
 import { prisma } from '../index'
 
 const ScanParamsSchema = z.object({
-  cityId: z.number(),
-  neighborhoodId: z.number().optional(),
-  minPrice: z.number().optional(),
-  maxPrice: z.number().optional(),
-  minSqm: z.number().optional(),
-  maxSqm: z.number().optional(),
-  minRooms: z.number().optional(),
-  maxRooms: z.number().optional(),
+  cityId: z.coerce.number(),
+  neighborhoodId: z.coerce.number().optional(),
+  minPrice: z.coerce.number().optional(),
+  maxPrice: z.coerce.number().optional(),
+  minSqm: z.coerce.number().optional(),
+  maxSqm: z.coerce.number().optional(),
+  minRooms: z.coerce.number().optional(),
+  maxRooms: z.coerce.number().optional(),
   dealType: z.enum(['sale', 'rent']).default('sale'),
 })
 

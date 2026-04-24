@@ -273,16 +273,16 @@
   <div class="header">
     <h1>🏠 Israeli Nadlan Scraper — Development Progress</h1>
     <p>Real-time tracking of the build. Updated every time Claude pushes changes.</p>
-    <span class="last-updated">Last updated: 2026-04-24 (build 2)</span>
+    <span class="last-updated">Last updated: 2026-04-24 (build 3)</span>
   </div>
 
   <!-- Overall Progress -->
   <div class="overall-bar-wrap">
     <h2>Overall MVP Progress</h2>
     <div class="progress-bar">
-      <div class="progress-bar-fill" style="width: 65%"></div>
+      <div class="progress-bar-fill" style="width: 75%"></div>
     </div>
-    <div class="progress-pct">65% complete — MVP scaffold built, needs DB + run test</div>
+    <div class="progress-pct">75% complete — all services running, scan endpoint live</div>
   </div>
 
   <!-- Phase grid -->
@@ -334,8 +334,20 @@
           <span class="item-done">Angular UI — search form + results table (builds clean)</span>
         </li>
         <li>
+          <span class="icon icon-done">✓</span>
+          <span class="item-done">Local DB setup (PostgreSQL via Homebrew) + seed — 18 cities, 13 neighborhoods</span>
+        </li>
+        <li>
+          <span class="icon icon-done">✓</span>
+          <span class="item-done">All 3 services running (API :3000, scraper :8001, Angular :4200)</span>
+        </li>
+        <li>
+          <span class="icon icon-done">✓</span>
+          <span class="item-done">Fixed: Zod coerce for cityId string→number from Angular select</span>
+        </li>
+        <li>
           <span class="icon icon-wip">~</span>
-          <span class="item-wip">Local DB setup + seed + end-to-end test run</span>
+          <span class="item-wip">First live Yad2 scan end-to-end</span>
         </li>
         <li>
           <span class="icon icon-todo">·</span>
@@ -476,6 +488,13 @@
   <div class="changelog-section">
     <div class="section-title" style="margin-top:0">Changelog</div>
     <div class="changelog">
+      <div class="changelog-entry">
+        <div class="changelog-date">2026-04-24 — Build 3</div>
+        <div class="changelog-msg">
+          <span class="dot"></span>
+          All services running locally. Fixed 500 error on POST /api/jobs/scan — Zod schema now uses z.coerce.number() so Angular's string values from &lt;select&gt; are coerced correctly. Scan endpoint returns jobId. PostgreSQL seeded. Progress tracker updated.
+        </div>
+      </div>
       <div class="changelog-entry">
         <div class="changelog-date">2026-04-24 — Build 2</div>
         <div class="changelog-msg">
