@@ -14,7 +14,20 @@ import { registerScheduler } from './jobs/scheduler'
 const app = Fastify({ logger: true })
 export const prisma = new PrismaClient()
 
+async function ensureColumns() {
+  const sqls = [
+    `ALTER TABLE "ListingComparison" ADD COLUMN IF NOT EXISTS "benchmarkSource" TEXT NOT NULL DEFAULT 'active_listings'`,
+    `ALTER TABLE "ListingComparison" ADD COLUMN IF NOT EXISTS "soldComparables" INTEGER NOT NULL DEFAULT 0`,
+    `ALTER TABLE "SoldTransaction"   ADD COLUMN IF NOT EXISTS "cityId" INTEGER`,
+  ]
+  for (const sql of sqls) {
+    await prisma.$executeRawUnsafe(sql)
+  }
+  console.log('[startup] schema columns ensured')
+}
+
 async function start() {
+  await ensureColumns()
   await app.register(cors, { origin: true })
 
   const boss = new PgBoss(process.env.DATABASE_URL!)
