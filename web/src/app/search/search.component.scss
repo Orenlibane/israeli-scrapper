@@ -732,6 +732,60 @@
   padding: 8px 0 16px;
 }
 
+/* ── Telegram test ───────────────────────────────── */
+.tg-test {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.btn-tg {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 14px;
+  background: rgba(41,182,246,0.08);
+  border: 1px solid rgba(41,182,246,0.2);
+  border-radius: var(--radius);
+  color: #29b6f6;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.12s;
+
+  svg { width: 15px; height: 15px; flex-shrink: 0; }
+
+  &:not(:disabled):hover {
+    background: rgba(41,182,246,0.14);
+    border-color: #29b6f6;
+  }
+
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+.spinner-tg {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(41,182,246,0.25);
+  border-top-color: #29b6f6;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+.tg-status {
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+
+  &.configured     { color: var(--green); }
+  &.not-configured { color: var(--muted); }
+  &.sent           { color: var(--green); }
+  &.err            { color: #fca5a5; }
+}
+
 /* ── Shared badges (referenced from results too) ─── */
 .badge {
   display: inline-block;

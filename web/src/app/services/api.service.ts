@@ -107,6 +107,14 @@ export class ApiService {
     )
   }
 
+  triggerTelegram(): Observable<{ status?: string; error?: string }> {
+    return this.http.post<{ status?: string; error?: string }>(`${API}/api/jobs/notify-telegram`, {})
+  }
+
+  getTelegramStatus(): Observable<{ configured: boolean }> {
+    return this.http.get<{ configured: boolean }>(`${API}/api/jobs/telegram-status`)
+  }
+
   getJob(id: string): Observable<Job> {
     return this.http.get<Job>(`${API}/api/jobs/${id}`)
   }

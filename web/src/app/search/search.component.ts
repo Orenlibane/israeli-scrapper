@@ -33,6 +33,10 @@ export class SearchComponent implements OnInit {
   computingComparisons = false
   comparisonStatus = ''
 
+  sendingTelegram = false
+  telegramStatus = ''
+  telegramConfigured: boolean | null = null
+
   stats: Stats | null = null
   loadingStats = false
 
@@ -171,6 +175,30 @@ export class SearchComponent implements OnInit {
     this.total = 0
     this.page = 1
     if (m === 'dashboard') this.loadStats()
+    if (m === 'opportunities' && this.telegramConfigured === null) this.checkTelegram()
+  }
+
+  checkTelegram() {
+    this.api.getTelegramStatus().subscribe({
+      next: s => { this.telegramConfigured = s.configured },
+      error: () => { this.telegramConfigured = false },
+    })
+  }
+
+  sendTelegram() {
+    this.sendingTelegram = true
+    this.telegramStatus = ''
+    this.api.triggerTelegram().subscribe({
+      next: r => {
+        this.sendingTelegram = false
+        this.telegramStatus = r.error ? `Error: ${r.error}` : 'Sent!'
+      },
+      error: (e) => {
+        this.sendingTelegram = false
+        const msg = e.error?.error ?? 'Failed'
+        this.telegramStatus = msg
+      },
+    })
   }
 
   loadStats() {

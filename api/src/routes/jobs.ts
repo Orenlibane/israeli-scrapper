@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { prisma } from '../index'
 import { computeComparisons } from '../jobs/comparison-worker'
+import { notifyTopDeals, telegramEnabled } from '../services/telegram'
 
 const ScanParamsSchema = z.object({
   cityId: z.coerce.number(),
@@ -37,6 +38,24 @@ export async function jobsRoute(app: FastifyInstance) {
       reply.code(500)
       return { error: String(err) }
     }
+  })
+
+  app.post('/api/jobs/notify-telegram', async (req, reply) => {
+    if (!telegramEnabled()) {
+      reply.code(503)
+      return { error: 'Telegram not configured — set TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID in Railway env vars' }
+    }
+    try {
+      await notifyTopDeals(prisma)
+      return { status: 'sent' }
+    } catch (err) {
+      reply.code(500)
+      return { error: String(err) }
+    }
+  })
+
+  app.get('/api/jobs/telegram-status', async () => {
+    return { configured: telegramEnabled() }
   })
 
   app.get<{ Params: { id: string } }>('/api/jobs/:id', async (req) => {
