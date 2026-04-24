@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Israeli Nadlan Scraper — Dev Progress</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0f1117;
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 32px 24px;
+    }
+
+    .header {
+      max-width: 960px;
+      margin: 0 auto 40px;
+    }
+
+    .header h1 {
+      font-size: 28px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+
+    .header p {
+      color: #94a3b8;
+      font-size: 14px;
+    }
+
+    .last-updated {
+      display: inline-block;
+      margin-top: 10px;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 6px;
+      padding: 4px 12px;
+      font-size: 12px;
+      color: #64748b;
+    }
+
+    .overall-bar-wrap {
+      max-width: 960px;
+      margin: 0 auto 40px;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 20px 24px;
+    }
+
+    .overall-bar-wrap h2 {
+      font-size: 14px;
+      font-weight: 600;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 12px;
+    }
+
+    .progress-bar {
+      background: #0f172a;
+      border-radius: 99px;
+      height: 12px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      border-radius: 99px;
+      background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+      transition: width 0.6s ease;
+    }
+
+    .progress-pct {
+      margin-top: 8px;
+      font-size: 13px;
+      color: #64748b;
+    }
+
+    .grid {
+      max-width: 960px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    .phase {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .phase-header {
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #334155;
+    }
+
+    .phase-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #f1f5f9;
+    }
+
+    .phase-badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 99px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .badge-active   { background: #1d4ed8; color: #bfdbfe; }
+    .badge-planned  { background: #1f2937; color: #6b7280; }
+    .badge-done     { background: #065f46; color: #6ee7b7; }
+
+    .phase-bar {
+      background: #0f172a;
+      height: 3px;
+    }
+
+    .phase-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+    }
+
+    .phase-items {
+      padding: 12px 20px 16px;
+      list-style: none;
+    }
+
+    .phase-items li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 6px 0;
+      font-size: 13.5px;
+      color: #cbd5e1;
+      line-height: 1.4;
+    }
+
+    .phase-items li .icon {
+      flex-shrink: 0;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      margin-top: 1px;
+    }
+
+    .icon-done    { background: #065f46; color: #6ee7b7; }
+    .icon-wip     { background: #1e3a5f; color: #60a5fa; }
+    .icon-todo    { background: #1e293b; border: 1px solid #475569; color: #475569; }
+
+    .item-done { color: #6ee7b7; text-decoration: line-through; text-decoration-color: #2d6a4f; }
+    .item-wip  { color: #93c5fd; }
+    .item-todo { color: #94a3b8; }
+
+    .section-title {
+      max-width: 960px;
+      margin: 0 auto 16px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #475569;
+    }
+
+    .gap-section {
+      max-width: 960px;
+      margin: 40px auto 0;
+    }
+
+    .gap-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .gap-card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 14px 16px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .gap-icon {
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .gap-card h4 { font-size: 13px; font-weight: 600; color: #f1f5f9; margin-bottom: 4px; }
+    .gap-card p  { font-size: 12px; color: #64748b; line-height: 1.5; }
+
+    .stack-section {
+      max-width: 960px;
+      margin: 40px auto 0;
+    }
+
+    .stack-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .stack-pill {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 6px 14px;
+      font-size: 13px;
+      color: #94a3b8;
+    }
+
+    .stack-pill span { color: #60a5fa; font-weight: 600; }
+
+    .changelog-section {
+      max-width: 960px;
+      margin: 40px auto 0;
+    }
+
+    .changelog {
+      margin-top: 16px;
+      border-left: 2px solid #334155;
+      padding-left: 20px;
+    }
+
+    .changelog-entry {
+      margin-bottom: 20px;
+    }
+
+    .changelog-date {
+      font-size: 11px;
+      color: #475569;
+      margin-bottom: 4px;
+    }
+
+    .changelog-msg {
+      font-size: 13.5px;
+      color: #cbd5e1;
+    }
+
+    .dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #3b82f6;
+      display: inline-block;
+      margin-left: -25px;
+      margin-right: 17px;
+      vertical-align: middle;
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>🏠 Israeli Nadlan Scraper — Development Progress</h1>
+    <p>Real-time tracking of the build. Updated every time Claude pushes changes.</p>
+    <span class="last-updated">Last updated: 2026-04-24 (build 2)</span>
+  </div>
+
+  <!-- Overall Progress -->
+  <div class="overall-bar-wrap">
+    <h2>Overall MVP Progress</h2>
+    <div class="progress-bar">
+      <div class="progress-bar-fill" style="width: 65%"></div>
+    </div>
+    <div class="progress-pct">65% complete — MVP scaffold built, needs DB + run test</div>
+  </div>
+
+  <!-- Phase grid -->
+  <div class="section-title">Phases</div>
+  <div class="grid">
+
+    <!-- Phase 1: MVP -->
+    <div class="phase">
+      <div class="phase-header">
+        <span class="phase-title">Phase 1 — MVP</span>
+        <span class="phase-badge badge-active">Active</span>
+      </div>
+      <div class="phase-bar"><div class="phase-bar-fill" style="width:65%"></div></div>
+      <ul class="phase-items">
+        <li>
+          <span class="icon icon-done">✓</span>
+          <span class="item-done">PRD written + tech stack decided</span>
+        </li>
+        <li>
+          <span class="icon icon-done">✓</span>
+          <span class="item-done">Monorepo scaffold (api / web / scraper)</span>
+        </li>
+        <li>
+          <span class="icon icon-done">✓</span>
+          <span class="item-done">PostgreSQL schema + Prisma (cities, neighborhoods, listings, jobs)</span>
+        </li>
+        <li>
+          <span class="icon icon-done">✓</span>
+          <span class="item-done">Yad2 scraper — curl_cffi TLS impersonation</span>
+        </li>
+        <li>
+          <span class="icon icon-done">✓</span>
+          <span class="item-done">nadlan.gov.il — Playwright session bootstrap + httpx</span>
+        </li>
+        <li>
+          <span class="icon icon-done">✓</span>
+          <span class="item-done">Python scraper microservice (FastAPI)</span>
+        </li>
+        <li>
+          <span class="icon icon-done">✓</span>
+          <span class="item-done">Node.js API — cities, listings, jobs routes (Fastify)</span>
+        </li>
+        <li>
+          <span class="icon icon-done">✓</span>
+          <span class="item-done">pg-boss job queue wired to scraper</span>
+        </li>
+        <li>
+          <span class="icon icon-done">✓</span>
+          <span class="item-done">Angular UI — search form + results table (builds clean)</span>
+        </li>
+        <li>
+          <span class="icon icon-wip">~</span>
+          <span class="item-wip">Local DB setup + seed + end-to-end test run</span>
+        </li>
+        <li>
+          <span class="icon icon-todo">·</span>
+          <span class="item-todo">Railway deploy (API + scraper + Postgres)</span>
+        </li>
+        <li>
+          <span class="icon icon-todo">·</span>
+          <span class="item-todo">Telegram bot (grammY) — setup flow + alerts</span>
+        </li>
+        <li>
+          <span class="icon icon-todo">·</span>
+          <span class="item-todo">Bull Queue job scheduler</span>
+        </li>
+        <li>
+          <span class="icon icon-todo">·</span>
+          <span class="item-todo">Basic job logging</span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Phase 2 -->
+    <div class="phase">
+      <div class="phase-header">
+        <span class="phase-title">Phase 2 — Enrichment</span>
+        <span class="phase-badge badge-planned">Planned</span>
+      </div>
+      <div class="phase-bar"><div class="phase-bar-fill" style="width:0%"></div></div>
+      <ul class="phase-items">
+        <li><span class="icon icon-todo">·</span><span class="item-todo">Madlan GraphQL scraper</span></li>
+        <li><span class="icon icon-todo">·</span><span class="item-todo">Multiple profiles per user</span></li>
+        <li><span class="icon icon-todo">·</span><span class="item-todo">Opportunity score + market comparison</span></li>
+        <li><span class="icon icon-todo">·</span><span class="item-todo">Hebrew address normalization + geo proximity</span></li>
+        <li><span class="icon icon-todo">·</span><span class="item-todo">Daily summary mode</span></li>
+        <li><span class="icon icon-todo">·</span><span class="item-todo">Cross-source deduplication</span></li>
+      </ul>
+    </div>
+
+    <!-- Phase 3 -->
+    <div class="phase">
+      <div class="phase-header">
+        <span class="phase-title">Phase 3 — Admin UI</span>
+        <span class="phase-badge badge-planned">Planned</span>
+      </div>
+      <div class="phase-bar"><div class="phase-bar-fill" style="width:0%"></div></div>
+      <ul class="phase-items">
+        <li><span class="icon icon-todo">·</span><span class="item-todo">Angular admin dashboard</span></li>
+        <li><span class="icon icon-todo">·</span><span class="item-todo">Source health monitoring</span></li>
+        <li><span class="icon icon-todo">·</span><span class="item-todo">Grafana + Prometheus observability</span></li>
+        <li><span class="icon icon-todo">·</span><span class="item-todo">Neighborhood market analytics</span></li>
+        <li><span class="icon icon-todo">·</span><span class="item-todo">Returned listing detection</span></li>
+        <li><span class="icon icon-todo">·</span><span class="item-todo">Source auto-blocklist on errors</span></li>
+      </ul>
+    </div>
+
+    <!-- Phase 4 -->
+    <div class="phase">
+      <div class="phase-header">
+        <span class="phase-title">Phase 4 — Scale</span>
+        <span class="phase-badge badge-planned">Planned</span>
+      </div>
+      <div class="phase-bar"><div class="phase-bar-fill" style="width:0%"></div></div>
+      <ul class="phase-items">
+        <li><span class="icon icon-todo">·</span><span class="item-todo">Homeless + Komo scrapers</span></li>
+        <li><span class="icon icon-todo">·</span><span class="item-todo">Performance optimization</span></li>
+        <li><span class="icon icon-todo">·</span><span class="item-todo">Telegram Mini App settings UI</span></li>
+        <li><span class="icon icon-todo">·</span><span class="item-todo">Advanced template management</span></li>
+        <li><span class="icon icon-todo">·</span><span class="item-todo">Rental monitoring (future)</span></li>
+      </ul>
+    </div>
+
+  </div>
+
+  <!-- Tech Stack -->
+  <div class="stack-section">
+    <div class="section-title" style="margin-top:0">Tech Stack</div>
+    <div class="stack-grid">
+      <div class="stack-pill"><span>Backend</span> Node.js + Fastify</div>
+      <div class="stack-pill"><span>Scraping</span> axios + Playwright (fallback)</div>
+      <div class="stack-pill"><span>Queue</span> Bull Queue + Redis</div>
+      <div class="stack-pill"><span>Database</span> PostgreSQL + Prisma</div>
+      <div class="stack-pill"><span>Telegram</span> grammY</div>
+      <div class="stack-pill"><span>Frontend</span> Angular</div>
+      <div class="stack-pill"><span>Hosting</span> Railway</div>
+      <div class="stack-pill"><span>Monitoring</span> Grafana + Prometheus</div>
+    </div>
+  </div>
+
+  <!-- Gaps -->
+  <div class="gap-section">
+    <div class="section-title" style="margin-top:0">Known Gaps / Decisions Pending</div>
+    <div class="gap-grid">
+      <div class="gap-card">
+        <div class="gap-icon">⚠️</div>
+        <div>
+          <h4>Yad2 TLS bypass in Node.js</h4>
+          <p>Yad2 uses Cloudflare + TLS fingerprinting. The israeli-nadlan-scraper skill uses Python's curl_cffi. For Node.js, need curl-impersonate or a small Python sidecar for Yad2 requests.</p>
+        </div>
+      </div>
+      <div class="gap-card">
+        <div class="gap-icon">⚠️</div>
+        <div>
+          <h4>No Angular skill</h4>
+          <p>Admin UI in Angular has no dedicated skill. Will use standard Angular docs and general patterns. MVP doesn't need the UI — bot commands cover setup.</p>
+        </div>
+      </div>
+      <div class="gap-card">
+        <div class="gap-icon">⚠️</div>
+        <div>
+          <h4>Geocoding / geo proximity</h4>
+          <p>Comparing listings to nearby sold transactions requires geo coordinates. Plan: OpenStreetMap Nominatim API (free, no key) or Google Maps API.</p>
+        </div>
+      </div>
+      <div class="gap-card">
+        <div class="gap-icon">❓</div>
+        <div>
+          <h4>Open: Multi-user vs single-user MVP</h4>
+          <p>Should MVP support multiple users from day 1, or start as a personal tool and add multi-tenancy in Phase 2?</p>
+        </div>
+      </div>
+      <div class="gap-card">
+        <div class="gap-icon">❓</div>
+        <div>
+          <h4>Open: Opportunity threshold</h4>
+          <p>Send ALL listings that pass hard filters, or only those above a minimum score? To decide before building the alert engine.</p>
+        </div>
+      </div>
+      <div class="gap-card">
+        <div class="gap-icon">❓</div>
+        <div>
+          <h4>Open: Yad2 starting neighborhoods</h4>
+          <p>Need Hebrew neighborhood codes for initial supported cities. Covered by israeli-real-estate skill, but need to pick the target cities first.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Changelog -->
+  <div class="changelog-section">
+    <div class="section-title" style="margin-top:0">Changelog</div>
+    <div class="changelog">
+      <div class="changelog-entry">
+        <div class="changelog-date">2026-04-24 — Build 2</div>
+        <div class="changelog-msg">
+          <span class="dot"></span>
+          Full MVP scaffold built: pnpm monorepo (api / web / scraper). Prisma schema (cities, neighborhoods, listings, history, sold_transactions, jobs). Fastify API with cities, listings, jobs routes + pg-boss queue. Python scraper microservice — Yad2 via curl_cffi TLS impersonation + nadlan.gov.il via Playwright session bootstrap + httpx. Angular 17 app — search form (city, neighborhood, filters), results table with market classification badges, pagination. Angular builds clean, TypeScript 0 errors. Next: local DB setup, seed, end-to-end test.
+        </div>
+      </div>
+      <div class="changelog-entry">
+        <div class="changelog-date">2026-04-24 — Build 1</div>
+        <div class="changelog-msg">
+          <span class="dot"></span>
+          Project initialized. PRD converted from Hebrew DOCX to Markdown. Tech stack decided (Node.js + Fastify, pg-boss, Railway, Angular). WhatsApp replaced with Telegram. progress.html created. Repo cloned to GitHub.
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

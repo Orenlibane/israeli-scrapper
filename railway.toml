@@ -1,0 +1,26 @@
+[build]
+builder = "NIXPACKS"
+
+[[services]]
+name = "api"
+source = "api"
+
+[services.build]
+buildCommand = "npm install && npx prisma generate && npm run build"
+startCommand = "node dist/index.js"
+
+[[services]]
+name = "scraper"
+source = "scraper"
+
+[services.build]
+buildCommand = "pip install -r requirements.txt && playwright install chromium"
+startCommand = "uvicorn main:app --host 0.0.0.0 --port 8001"
+
+[[services]]
+name = "web"
+source = "web"
+
+[services.build]
+buildCommand = "npm install && npm run build"
+startCommand = "npx serve dist/web/browser -l 4200"

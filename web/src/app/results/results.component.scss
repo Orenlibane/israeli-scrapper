@@ -1,0 +1,85 @@
+.results-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  h2 { font-size: 16px; font-weight: 600; color: #f1f5f9; margin: 0; }
+  .page-info { font-size: 13px; color: #64748b; }
+}
+
+.table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid #334155; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+}
+
+thead tr { background: #1e293b; }
+th {
+  padding: 12px 14px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+tbody tr {
+  border-top: 1px solid #1e293b;
+  background: #0f172a;
+  transition: background 0.1s;
+  &:hover { background: #1a2540; }
+}
+
+td { padding: 12px 14px; color: #cbd5e1; vertical-align: top; }
+
+.location {
+  .city   { font-weight: 600; color: #f1f5f9; }
+  .nbhd   { color: #94a3b8; font-size: 12px; }
+  .street { color: #475569; font-size: 12px; }
+}
+
+.price { font-weight: 700; color: #f1f5f9; white-space: nowrap; }
+.sqm-price { font-weight: 600; color: #93c5fd; }
+.fresh { color: #6ee7b7 !important; font-weight: 600; }
+.dim { color: #334155; }
+
+.pct { font-size: 11px; color: #64748b; margin-top: 2px; }
+
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 600;
+  &.owner  { background: #1e3a5f; color: #60a5fa; margin-left: 6px; }
+  &.green  { background: #064e3b; color: #6ee7b7; }
+  &.blue   { background: #1e3a5f; color: #93c5fd; }
+  &.gray   { background: #1e293b; color: #94a3b8; }
+  &.red    { background: #450a0a; color: #fca5a5; }
+}
+
+a { color: #3b82f6; text-decoration: none; &:hover { text-decoration: underline; } }
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 20px;
+  color: #64748b;
+  font-size: 13px;
+  button {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    color: #94a3b8;
+    padding: 8px 16px;
+    cursor: pointer;
+    &:disabled { opacity: 0.4; cursor: not-allowed; }
+    &:hover:not(:disabled) { border-color: #3b82f6; color: #60a5fa; }
+  }
+}

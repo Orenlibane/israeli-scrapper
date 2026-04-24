@@ -1,0 +1,69 @@
+<div class="results-header">
+  <h2>{{ total | number }} listings found</h2>
+  <span class="page-info">Page {{ page }} of {{ totalPages }}</span>
+</div>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Location</th>
+        <th>Price</th>
+        <th>₪/m²</th>
+        <th>Rooms</th>
+        <th>sqm</th>
+        <th>Floor</th>
+        <th>Days</th>
+        <th>Market</th>
+        <th>Source</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (l of listings; track l.id) {
+        <tr>
+          <td class="location">
+            <div class="city">{{ l.cityRaw }}</div>
+            <div class="nbhd">{{ l.neighborhoodRaw }}</div>
+            <div class="street">{{ l.street }}</div>
+          </td>
+          <td class="price">
+            {{ formatPrice(l.priceNis) }}
+            @if (l.posterType === 'owner') {
+              <span class="badge owner">Owner</span>
+            }
+          </td>
+          <td class="sqm-price">
+            {{ l.pricePerSqm ? (l.pricePerSqm | number) + ' ₪' : '—' }}
+          </td>
+          <td>{{ l.rooms ?? '—' }}</td>
+          <td>{{ l.areaSqm ? (l.areaSqm | number:'1.0-0') + ' m²' : '—' }}</td>
+          <td>{{ l.floor ?? '—' }}</td>
+          <td [class.fresh]="l.daysOnMarket <= 3">{{ l.daysOnMarket }}d</td>
+          <td>
+            @if (l.comparison) {
+              <span class="badge" [ngClass]="classColor(l.comparison.classification)">
+                {{ classLabel(l.comparison.classification) }}
+              </span>
+              <div class="pct">{{ l.comparison.pctDiff > 0 ? '+' : '' }}{{ l.comparison.pctDiff | number:'1.1-1' }}%</div>
+            } @else {
+              <span class="dim">—</span>
+            }
+          </td>
+          <td>
+            @if (l.sourceUrl) {
+              <a [href]="l.sourceUrl" target="_blank" rel="noopener">View →</a>
+            }
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>
+
+@if (totalPages > 1) {
+  <div class="pagination">
+    <button (click)="pageChange.emit(page - 1)" [disabled]="page <= 1">← Prev</button>
+    <span>{{ page }} / {{ totalPages }}</span>
+    <button (click)="pageChange.emit(page + 1)" [disabled]="page >= totalPages">Next →</button>
+  </div>
+}

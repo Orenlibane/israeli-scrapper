@@ -1,0 +1,14 @@
+{
+  "name": "nadlan-scraper",
+  "private": true,
+  "scripts": {
+    "dev:api": "pnpm --filter api dev",
+    "dev:web": "pnpm --filter web dev",
+    "dev": "concurrently \"pnpm dev:api\" \"pnpm dev:web\"",
+    "db:push": "pnpm --filter api db:push",
+    "db:seed": "pnpm --filter api db:seed"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

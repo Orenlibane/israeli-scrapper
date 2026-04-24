@@ -1,0 +1,106 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model City {
+  id            Int           @id
+  name          String
+  nameHe        String
+  topArea       Int
+  neighborhoods Neighborhood[]
+  listings      Listing[]
+}
+
+model Neighborhood {
+  id       Int      @id
+  name     String
+  nameHe   String
+  cityId   Int
+  city     City     @relation(fields: [cityId], references: [id])
+  listings Listing[]
+}
+
+model Listing {
+  id             String   @id        // "yad2:abc123"
+  source         String              // "yad2" | "madlan"
+  sourceUrl      String?
+  priceNis       Int
+  pricePerSqm    Int?
+  dealType       String              // "sale" | "rent"
+  propertyType   String?
+  rooms          Float?
+  areaSqm        Float?
+  floor          Int?
+  cityId         Int?
+  city           City?    @relation(fields: [cityId], references: [id])
+  neighborhoodId Int?
+  neighborhood   Neighborhood? @relation(fields: [neighborhoodId], references: [id])
+  cityRaw        String?
+  neighborhoodRaw String?
+  street         String?
+  lat            Float?
+  lon            Float?
+  posterType     String?             // "owner" | "agent"
+  publishedAt    DateTime?
+  firstSeenAt    DateTime @default(now())
+  lastSeenAt     DateTime @default(now())
+  isActive       Boolean  @default(true)
+
+  history        ListingHistory[]
+  comparisons    ListingComparison[]
+}
+
+model ListingHistory {
+  id          Int      @id @default(autoincrement())
+  listingId   String
+  listing     Listing  @relation(fields: [listingId], references: [id])
+  field       String
+  oldValue    String?
+  newValue    String?
+  detectedAt  DateTime @default(now())
+}
+
+model SoldTransaction {
+  id              String   @id
+  address         String
+  cityRaw         String?
+  lat             Float?
+  lon             Float?
+  priceNis        Int
+  areaSqm         Float?
+  pricePerSqm     Int?
+  rooms           Float?
+  floor           Int?
+  transactionDate DateTime?
+  source          String   @default("nadlan_gov")
+  gush            Int?
+  helka           Int?
+  createdAt       DateTime @default(now())
+}
+
+model ListingComparison {
+  id               Int      @id @default(autoincrement())
+  listingId        String
+  listing          Listing  @relation(fields: [listingId], references: [id])
+  numTransactions  Int
+  avgPricePerSqm   Int
+  medianPricePerSqm Int
+  pctDiff          Float             // negative = below market
+  classification   String            // "deal" | "below_market" | "at_market" | "overpriced"
+  computedAt       DateTime @default(now())
+}
+
+model ScanJob {
+  id          String   @id @default(cuid())
+  status      String   @default("pending")  // pending | running | done | failed
+  params      Json
+  listingsFound Int    @default(0)
+  error       String?
+  startedAt   DateTime @default(now())
+  finishedAt  DateTime?
+}
