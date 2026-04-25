@@ -19,6 +19,14 @@
 
     <div class="filter-row">
       <div class="filter-group">
+        <div class="filter-label">Deal type</div>
+        <div class="deal-toggle">
+          <button class="deal-btn" [class.active]="dealType === 'sale'" (click)="dealType = 'sale'">Sale</button>
+          <button class="deal-btn" [class.active]="dealType === 'rent'" (click)="dealType = 'rent'">Rent</button>
+        </div>
+      </div>
+
+      <div class="filter-group">
         <div class="filter-label">Period</div>
         <select class="filter-select" [(ngModel)]="months">
           @for (opt of monthOptions; track opt.value) {
@@ -138,8 +146,20 @@
     <!-- ── Recent transactions table ─────────────────────────────────── -->
     <div class="tx-table-card">
       <div class="tx-table-header">
-        <div class="tx-table-title">Recent Transactions</div>
-        <div class="tx-table-meta">{{ data.total | number }} total · page {{ page }} of {{ totalPages }}</div>
+        <div class="tx-table-title">
+          Recent Transactions
+          <span class="source-badge" [class.gov]="dataSourceIsGov">
+            {{ dataSourceLabel }}
+          </span>
+        </div>
+        <div class="tx-table-controls">
+          <select class="filter-select sort-select" [(ngModel)]="sort" (ngModelChange)="load(1)">
+            @for (opt of sortOptions; track opt.value) {
+              <option [value]="opt.value">{{ opt.label }}</option>
+            }
+          </select>
+          <div class="tx-table-meta">{{ data.total | number }} total · page {{ page }} of {{ totalPages }}</div>
+        </div>
       </div>
 
       <div class="tx-table-wrap">

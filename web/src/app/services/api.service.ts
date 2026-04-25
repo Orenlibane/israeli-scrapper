@@ -151,16 +151,20 @@ export class ApiService {
   getTransactions(params: {
     cityIds?: number[]
     months?: number
+    dealType?: string
     minRooms?: number
     maxRooms?: number
+    sort?: string
     page?: number
   }): Observable<TransactionsResponse> {
     const p: Record<string, string> = {}
-    if (params.cityIds?.length) p['cityIds'] = params.cityIds.join(',')
-    if (params.months)   p['months']   = String(params.months)
-    if (params.minRooms) p['minRooms'] = String(params.minRooms)
-    if (params.maxRooms) p['maxRooms'] = String(params.maxRooms)
-    if (params.page)     p['page']     = String(params.page)
+    if (params.cityIds?.length) p['cityIds']  = params.cityIds.join(',')
+    if (params.months)          p['months']   = String(params.months)
+    if (params.dealType)        p['dealType'] = params.dealType
+    if (params.minRooms)        p['minRooms'] = String(params.minRooms)
+    if (params.maxRooms)        p['maxRooms'] = String(params.maxRooms)
+    if (params.sort)            p['sort']     = params.sort
+    if (params.page)            p['page']     = String(params.page)
     return this.http.get<TransactionsResponse>(`${API}/api/transactions`, { params: p })
   }
 }
@@ -238,6 +242,8 @@ export interface SoldTx {
 
 export interface TransactionsResponse {
   months: number
+  dealType: string
+  dataSource: 'sold_transactions' | 'active_listings'
   cityStats: TxCityStat[]
   recentTransactions: SoldTx[]
   total: number

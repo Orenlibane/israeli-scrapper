@@ -299,18 +299,78 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
   padding: 16px 20px;
   border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
 }
 
 .tx-table-title {
   font-size: 14px;
   font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tx-table-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 .tx-table-meta {
   font-size: 12px;
   color: var(--text-muted);
+}
+
+.sort-select {
+  font-size: 12px;
+}
+
+.source-badge {
+  font-size: 10px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 20px;
+  background: rgba(245,158,11,.12);
+  color: #b45309;
+  border: 1px solid rgba(245,158,11,.25);
+  white-space: nowrap;
+
+  &.gov {
+    background: rgba(16,185,129,.12);
+    color: #047857;
+    border-color: rgba(16,185,129,.25);
+  }
+}
+
+.deal-toggle {
+  display: flex;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.deal-btn {
+  padding: 4px 14px;
+  font-size: 12px;
+  font-weight: 500;
+  background: transparent;
+  color: var(--text-secondary);
+  border: none;
+  cursor: pointer;
+  transition: all .15s;
+
+  &.active {
+    background: var(--blue, #3b82f6);
+    color: #fff;
+    font-weight: 600;
+  }
+
+  &:hover:not(.active) { background: var(--bg); }
 }
 
 .tx-table-wrap {

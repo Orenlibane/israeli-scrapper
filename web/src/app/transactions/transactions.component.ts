@@ -45,14 +45,26 @@ export class TransactionsComponent implements OnInit {
     { label: '3 years',   value: 36 },
   ]
 
-  selectedCityIds = new Set<number>([5000, 3000])  // default: TA + Jerusalem
+  selectedCityIds = new Set<number>([5000, 3000])
   months = 24
+  dealType: 'sale' | 'rent' = 'sale'
   minRooms: number | undefined
   maxRooms: number | undefined
   page = 1
 
   loading = false
   data: TransactionsResponse | null = null
+
+  get dataSourceLabel(): string {
+    if (!this.data) return ''
+    return this.data.dataSource === 'sold_transactions'
+      ? 'Gov sold transactions (nadlan.gov.il)'
+      : 'Active listings (Yad2 market data)'
+  }
+
+  get dataSourceIsGov(): boolean {
+    return this.data?.dataSource === 'sold_transactions'
+  }
 
   ngOnInit() {
     this.load()
@@ -76,14 +88,28 @@ export class TransactionsComponent implements OnInit {
     }
   }
 
+  sort: 'newest' | 'price_asc' | 'price_desc' | 'ppsqm_asc' | 'ppsqm_desc' | 'best_deal' | 'worst_deal' = 'newest'
+
+  readonly sortOptions = [
+    { label: 'Newest first',    value: 'newest' },
+    { label: 'Price ↑ (cheap)',  value: 'price_asc' },
+    { label: 'Price ↓ (expensive)', value: 'price_desc' },
+    { label: '₪/m² ↑ (lowest)', value: 'ppsqm_asc' },
+    { label: '₪/m² ↓ (highest)', value: 'ppsqm_desc' },
+    { label: 'Best deal first',  value: 'best_deal' },
+    { label: 'Worst deal first', value: 'worst_deal' },
+  ]
+
   load(p = 1) {
     this.page = p
     this.loading = true
     this.api.getTransactions({
       cityIds: [...this.selectedCityIds],
       months: this.months,
+      dealType: this.dealType,
       minRooms: this.minRooms,
       maxRooms: this.maxRooms,
+      sort: this.sort,
       page: this.page,
     }).subscribe({
       next: d => { this.data = d; this.loading = false },
