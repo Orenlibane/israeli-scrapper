@@ -1,74 +1,54 @@
 """
 Madlan.co.il listing scraper.
-Uses the Madlan GraphQL API (no Cloudflare protection).
+Uses Playwright to bypass PerimeterX bot protection.
+Navigates to the city's listing page, then paginates via page.evaluate()
+to call /api2 GraphQL from inside the browser context (which carries the
+real PerimeterX session tokens).
 
-Output is normalized to the same format as yad2.py so the same upsertListing
-helper in workers.ts can persist both sources without modification.
+Output matches yad2.py format so workers.ts upsertListing handles both.
 """
 from __future__ import annotations
 
-import random
-import time
+import asyncio
 from datetime import datetime, timezone
 from typing import Any
 
-import httpx
+API2_URL   = "/api2"          # relative — called from inside the browser
+WEB_HOST   = "https://www.madlan.co.il"
+PAGE_LIMIT = 40
 
-GRAPHQL_URL = "https://www.madlan.co.il/api/graphql"
-REST_URL = "https://www.madlan.co.il/nadlan/api/listings"
-WEB_HOST = "https://www.madlan.co.il"
-
-_DEFAULT_HEADERS = {
-    "Accept": "application/json",
-    "Content-Type": "application/json",
-    "User-Agent": (
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-        "AppleWebKit/537.36 (KHTML, like Gecko) "
-        "Chrome/120.0.0.0 Safari/537.36"
-    ),
-    "Origin": WEB_HOST,
-    "Referer": f"{WEB_HOST}/",
-    "x-origin": "madlan",
+# Maps our DB city IDs to Hebrew URL slugs and bounding-box tile ranges (zoom 13).
+# Tile ranges cover slightly more area than the city boundary to avoid missing edges.
+CITY_CFG: dict[int, dict] = {
+    5000: {"slug": "תל-אביב-יפו",        "name": "תל אביב יפו",        "x1": 4885, "y1": 3320, "x2": 4892, "y2": 3326},
+    3000: {"slug": "ירושלים",             "name": "ירושלים",             "x1": 4880, "y1": 3329, "x2": 4886, "y2": 3335},
+    4000: {"slug": "חיפה",                "name": "חיפה",                "x1": 4876, "y1": 3311, "x2": 4882, "y2": 3317},
+    8300: {"slug": "ראשון-לציון",         "name": "ראשון לציון",         "x1": 4883, "y1": 3325, "x2": 4889, "y2": 3330},
+    7900: {"slug": "פתח-תקווה",           "name": "פתח תקווה",           "x1": 4885, "y1": 3318, "x2": 4891, "y2": 3323},
+    70:   {"slug": "אשדוד",              "name": "אשדוד",               "x1": 4879, "y1": 3330, "x2": 4885, "y2": 3335},
+    7400: {"slug": "נתניה",              "name": "נתניה",               "x1": 4881, "y1": 3314, "x2": 4887, "y2": 3319},
+    9000: {"slug": "באר-שבע",            "name": "באר שבע",             "x1": 4880, "y1": 3340, "x2": 4886, "y2": 3346},
+    6600: {"slug": "חולון",              "name": "חולון",               "x1": 4884, "y1": 3323, "x2": 4889, "y2": 3328},
+    6200: {"slug": "בני-ברק",            "name": "בני ברק",             "x1": 4886, "y1": 3319, "x2": 4891, "y2": 3324},
+    8600: {"slug": "רמת-גן",             "name": "רמת גן",              "x1": 4887, "y1": 3320, "x2": 4892, "y2": 3324},
+    6400: {"slug": "הרצליה",             "name": "הרצליה",              "x1": 4882, "y1": 3315, "x2": 4887, "y2": 3320},
+    6900: {"slug": "כפר-סבא",            "name": "כפר סבא",             "x1": 4883, "y1": 3315, "x2": 4888, "y2": 3320},
+    8400: {"slug": "רחובות",             "name": "רחובות",              "x1": 4882, "y1": 3323, "x2": 4888, "y2": 3328},
+    1200: {"slug": "מודיעין-מכבים-רעות", "name": "מודיעין מכבים רעות",  "x1": 4879, "y1": 3324, "x2": 4885, "y2": 3329},
+    8700: {"slug": "רעננה",              "name": "רעננה",               "x1": 4883, "y1": 3316, "x2": 4888, "y2": 3320},
+    650:  {"slug": "אשקלון",             "name": "אשקלון",              "x1": 4877, "y1": 3332, "x2": 4883, "y2": 3337},
+    6300: {"slug": "בת-ים",              "name": "בת ים",               "x1": 4884, "y1": 3325, "x2": 4889, "y2": 3329},
 }
 
-# Our DB city IDs — same numeric values Madlan uses for major cities
-CITY_IDS = [70, 650, 1200, 3000, 4000, 5000, 6200, 6300, 6400, 6600, 6900, 7400, 7900, 8300, 8400, 8600, 8700, 9000]
-
-CITY_HE: dict[int, str] = {
-    5000: "תל אביב יפו",
-    3000: "ירושלים",
-    4000: "חיפה",
-    8300: "ראשון לציון",
-    7900: "פתח תקווה",
-    70:   "אשדוד",
-    7400: "נתניה",
-    9000: "באר שבע",
-    6600: "חולון",
-    6200: "בני ברק",
-    8600: "רמת גן",
-    6400: "הרצליה",
-    6900: "כפר סבא",
-    8400: "רחובות",
-    1200: "מודיעין מכבים רעות",
-    8700: "רעננה",
-    650:  "אשקלון",
-    6300: "בת ים",
-}
-
-_GRAPHQL_QUERY = """
-query searchListings($where: ListingSearch!, $pagination: Pagination) {
-  listingSearch(where: $where, pagination: $pagination) {
-    listings {
-      id
-      price
-      rooms
-      squareMeter
-      floor
-      address { city { text } neighborhood { text } street }
-      dealType
-      propertyType
+_GQL = """
+query searchPoiV2($where: searchPoiV2Where!, $pagination: searchPoiV2Pagination) {
+  searchPoiV2(where: $where, pagination: $pagination) {
+    bulletins {
+      id price rooms squareMeter floor
+      address { city { text } neighborhood { text } street houseNumber }
+      dealType propertyType
       seller { type }
-      geolocation { coordinates { lat lon } }
+      geolocation { lat lon }
     }
     totalCount
   }
@@ -76,244 +56,207 @@ query searchListings($where: ListingSearch!, $pagination: Pagination) {
 """.strip()
 
 
-def _session() -> httpx.Client:
-    return httpx.Client(headers=_DEFAULT_HEADERS, follow_redirects=True)
-
-
 def _normalize(item: dict[str, Any], city_id: int, deal_type: str) -> dict[str, Any] | None:
-    """Convert a raw Madlan API item to our standard listing dict."""
-    listing_id_raw = item.get("id")
-    if not listing_id_raw:
+    raw_id = item.get("id")
+    if not raw_id:
         return None
 
-    addr = item.get("address") or {}
-    city_obj = addr.get("city") or {}
-    neighborhood_obj = addr.get("neighborhood") or {}
-    street_raw = addr.get("street")
+    addr   = item.get("address") or {}
+    city   = (addr.get("city") or {}).get("text") or (CITY_CFG.get(city_id) or {}).get("name")
+    nbhd   = (addr.get("neighborhood") or {}).get("text")
+    street = " ".join(filter(None, [addr.get("street"), str(addr.get("houseNumber") or "")])).strip() or None
 
-    city = city_obj.get("text") or CITY_HE.get(city_id)
-    neighborhood = neighborhood_obj.get("text") if isinstance(neighborhood_obj, dict) else None
+    def _int(v: Any) -> int:
+        try: return int(v or 0)
+        except: return 0
 
-    price_raw = item.get("price")
-    try:
-        price = int(price_raw) if price_raw is not None else 0
-    except (ValueError, TypeError):
-        price = 0
+    def _float(v: Any) -> float | None:
+        try: return float(v) if v is not None else None
+        except: return None
 
-    rooms_raw = item.get("rooms")
-    try:
-        rooms = float(rooms_raw) if rooms_raw is not None else None
-    except (ValueError, TypeError):
-        rooms = None
+    price = _int(item.get("price"))
+    area  = _float(item.get("squareMeter"))
+    rooms = _float(item.get("rooms"))
+    floor = _int(item.get("floor")) if item.get("floor") is not None else None
+    ppsqm = round(price / area) if price and area else None
 
-    sqm_raw = item.get("squareMeter")
-    try:
-        area = float(sqm_raw) if sqm_raw is not None else None
-    except (ValueError, TypeError):
-        area = None
+    geo   = item.get("geolocation") or {}
 
-    floor_raw = item.get("floor")
-    try:
-        floor = int(floor_raw) if floor_raw is not None else None
-    except (ValueError, TypeError):
-        floor = None
-
-    price_per_sqm = round(price / area) if price and area else None
-
-    # Geolocation
-    geo = item.get("geolocation") or {}
-    coords = (geo.get("coordinates") or {})
-    lat = coords.get("lat")
-    lon = coords.get("lon")
-
-    # Seller / poster type
-    seller = item.get("seller") or {}
-    seller_type = seller.get("type", "").lower() if isinstance(seller, dict) else ""
-    poster_type = "owner" if seller_type in ("private", "owner") else "agent"
-
-    # Deal type normalisation
     raw_deal = (item.get("dealType") or "").upper()
-    if raw_deal == "FORSALE":
-        norm_deal = "sale"
-    elif raw_deal == "RENT":
-        norm_deal = "rent"
-    else:
-        norm_deal = "sale" if deal_type in ("forsale", "sale") else "rent"
+    norm_deal = "rent" if raw_deal == "RENT" else "sale"
 
-    property_type = item.get("propertyType") or "דירה"
+    seller_type = ((item.get("seller") or {}).get("type") or "").lower()
+    poster = "owner" if seller_type in ("private", "owner") else "agent"
 
     now = datetime.now(timezone.utc).isoformat()
 
     return {
-        "listing_id":    f"madlan:{listing_id_raw}",
+        "listing_id":    f"madlan:{raw_id}",
         "source_site":   "madlan",
-        "source_url":    f"{WEB_HOST}/listing/{listing_id_raw}",
+        "source_url":    f"{WEB_HOST}/listing/{raw_id}",
         "price_nis":     price,
-        "price_per_sqm": price_per_sqm,
+        "price_per_sqm": ppsqm,
         "deal_type":     norm_deal,
-        "property_type": property_type,
+        "property_type": item.get("propertyType") or "דירה",
         "rooms":         rooms,
         "area_sqm":      area,
         "floor":         floor,
         "city":          city,
-        "neighborhood":  neighborhood,
-        "street":        street_raw,
-        "lat":           lat,
-        "lon":           lon,
-        "poster_type":   poster_type,
+        "neighborhood":  nbhd,
+        "street":        street,
+        "lat":           geo.get("lat"),
+        "lon":           geo.get("lon"),
+        "poster_type":   poster,
         "published_at":  None,
         "first_seen":    now,
         "last_seen":     now,
     }
 
 
-def _scrape_graphql(
-    session: httpx.Client,
-    city_id: int,
-    deal_type: str,
-    max_pages: int,
-    rate_s: float,
-) -> list[dict[str, Any]]:
-    """Try GraphQL API. Returns list of normalized listings (may be empty on failure)."""
+async def _scrape_async(city_id: int, deal_type: str, max_pages: int) -> list[dict[str, Any]]:
+    """
+    Intercept the searchPoiV2 response that the Madlan page itself makes.
+    PerimeterX runs its challenge in JS, so the page's own XHR to /api2 succeeds.
+    We capture those responses via page.on("response") and then paginate by
+    scrolling / modifying the URL to trigger more API calls.
+    """
+    from playwright.async_api import async_playwright
+
+    cfg = CITY_CFG.get(city_id)
+    if not cfg:
+        print(f"[madlan] Unknown city_id={city_id}", flush=True)
+        return []
+
     madlan_deal = "FORSALE" if deal_type in ("forsale", "sale") else "RENT"
+    url_deal    = "for-sale" if madlan_deal == "FORSALE" else "for-rent"
+    start_url   = f"{WEB_HOST}/{url_deal}/{cfg['slug']}"
+
     results: list[dict[str, Any]] = []
     seen_ids: set[str] = set()
-    page_size = 50
+    captured: list[dict] = []
 
-    for page in range(1, max_pages + 1):
-        payload = {
-            "query": _GRAPHQL_QUERY,
-            "variables": {
-                "where": {
-                    "cityId": str(city_id),
-                    "dealType": madlan_deal,
-                },
-                "pagination": {
-                    "page": page,
-                    "size": page_size,
-                },
-            },
-        }
+    async with async_playwright() as pw:
+        browser = await pw.chromium.launch(headless=True)
+        ctx = await browser.new_context(
+            user_agent=(
+                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+            ),
+            locale="he-IL",
+        )
+        page = await ctx.new_page()
 
+        # Intercept /api2 responses made by the page itself
+        async def on_response(response: Any) -> None:
+            if "/api2" in response.url and response.status == 200:
+                try:
+                    data = await response.json()
+                    search = ((data or {}).get("data") or {}).get("searchPoiV2")
+                    if search:
+                        captured.append(search)
+                except Exception:
+                    pass
+
+        page.on("response", on_response)
+
+        # Navigate — PerimeterX runs its JS challenge here
+        print(f"[madlan] Navigating to {start_url}", flush=True)
         try:
-            r = session.post(GRAPHQL_URL, json=payload, timeout=20)
+            await page.goto(start_url, wait_until="load", timeout=45_000)
         except Exception as e:
-            print(f"[madlan] GraphQL request error page {page}: {e}", flush=True)
-            break
+            print(f"[madlan] Navigation warning: {e}", flush=True)
 
-        if r.status_code not in (200,):
-            print(f"[madlan] GraphQL HTTP {r.status_code} page {page}: {r.text[:200]}", flush=True)
-            break
+        # Wait for the page's own API call to fire and be captured
+        for _ in range(20):
+            if captured:
+                break
+            await asyncio.sleep(0.5)
 
-        try:
-            data = r.json()
-        except Exception:
-            print(f"[madlan] GraphQL non-JSON page {page}", flush=True)
-            break
+        # Process first-page results from intercepted responses
+        total = 0
+        for search in captured:
+            total = search.get("totalCount") or total
+            for item in (search.get("bulletins") or []):
+                rid = item.get("id")
+                if not rid or rid in seen_ids:
+                    continue
+                seen_ids.add(rid)
+                norm = _normalize(item, city_id, deal_type)
+                if norm:
+                    results.append(norm)
 
-        if "errors" in data:
-            print(f"[madlan] GraphQL errors page {page}: {data['errors']}", flush=True)
-            break
+        print(f"[madlan] city={city_id} total={total} captured_p1={len(results)}", flush=True)
 
-        search = (data.get("data") or {}).get("listingSearch") or {}
-        items = search.get("listings") or []
-        total_count = search.get("totalCount") or 0
+        # Paginate: call /api2 from the browser context with offset.
+        # At this point PerimeterX is satisfied, so same-origin fetch works.
+        if total > PAGE_LIMIT and max_pages > 1:
+            js = """
+            async ({url, gql, variables}) => {
+                try {
+                    const r = await fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            operationName: 'searchPoiV2',
+                            query: gql,
+                            variables,
+                        }),
+                    });
+                    if (!r.ok) return {error: r.status};
+                    return await r.json();
+                } catch(e) {
+                    return {error: String(e)};
+                }
+            }
+            """
 
-        if page == 1:
-            total_pages = min(max_pages, -(-total_count // page_size))  # ceil division
-            print(
-                f"[madlan] city={city_id} total={total_count} pages≈{total_pages} (fetching up to {max_pages})",
-                flush=True,
-            )
+            for page_num in range(2, min(max_pages + 1, (total // PAGE_LIMIT) + 2)):
+                variables = {
+                    "where": {
+                        "dealType":      madlan_deal,
+                        "poiTypes":      ["bulletin"],
+                        "tileRanges":    [{
+                            "x1": cfg["x1"], "y1": cfg["y1"],
+                            "x2": cfg["x2"], "y2": cfg["y2"],
+                        }],
+                        "searchContext": "marketplace",
+                    },
+                    "pagination": {
+                        "limit":  PAGE_LIMIT,
+                        "offset": (page_num - 1) * PAGE_LIMIT,
+                    },
+                }
 
-        new_count = 0
-        for item in items:
-            raw_id = item.get("id")
-            if not raw_id or raw_id in seen_ids:
-                continue
-            seen_ids.add(raw_id)
-            norm = _normalize(item, city_id, deal_type)
-            if norm:
-                results.append(norm)
-                new_count += 1
+                data = await page.evaluate(js, {"url": API2_URL, "gql": _GQL, "variables": variables})
 
-        print(f"[madlan] GraphQL page {page}: {len(items)} items, +{new_count} new (total {len(results)})", flush=True)
+                if isinstance(data, dict) and "error" in data:
+                    print(f"[madlan] page {page_num} error: {data['error']}", flush=True)
+                    break
 
-        # Stop if we've seen all items or there are none
-        if not items or len(results) >= total_count:
-            break
+                search = ((data or {}).get("data") or {}).get("searchPoiV2") or {}
+                items  = search.get("bulletins") or []
+                new = 0
+                for item in items:
+                    rid = item.get("id")
+                    if not rid or rid in seen_ids:
+                        continue
+                    seen_ids.add(rid)
+                    norm = _normalize(item, city_id, deal_type)
+                    if norm:
+                        results.append(norm)
+                        new += 1
 
-        if page < max_pages:
-            time.sleep(rate_s + random.uniform(0, 1.0))
+                print(f"[madlan] p{page_num}: {len(items)} items +{new} new (total {len(results)})", flush=True)
+                if not items or len(results) >= total:
+                    break
+                await asyncio.sleep(1.5)
 
-    return results
+        await browser.close()
 
-
-def _scrape_rest(
-    session: httpx.Client,
-    city_id: int,
-    deal_type: str,
-    max_pages: int,
-    rate_s: float,
-) -> list[dict[str, Any]]:
-    """Fallback REST endpoint. Returns list of normalized listings (may be empty on failure)."""
-    rest_deal = "forsale" if deal_type in ("forsale", "sale") else "rent"
-    results: list[dict[str, Any]] = []
-    seen_ids: set[str] = set()
-
-    for page in range(1, max_pages + 1):
-        params = {
-            "cityId": city_id,
-            "dealType": rest_deal,
-            "page": page,
-        }
-
-        try:
-            r = session.get(REST_URL, params=params, timeout=20)
-        except Exception as e:
-            print(f"[madlan] REST request error page {page}: {e}", flush=True)
-            break
-
-        if r.status_code not in (200,):
-            print(f"[madlan] REST HTTP {r.status_code} page {page}: {r.text[:200]}", flush=True)
-            break
-
-        try:
-            data = r.json()
-        except Exception:
-            print(f"[madlan] REST non-JSON page {page}", flush=True)
-            break
-
-        # REST may return a list or a dict with a "listings" key
-        if isinstance(data, list):
-            items = data
-        elif isinstance(data, dict):
-            items = data.get("listings") or data.get("items") or []
-        else:
-            items = []
-
-        if page == 1:
-            print(f"[madlan] REST city={city_id} page 1 returned {len(items)} items", flush=True)
-
-        if not items:
-            break
-
-        new_count = 0
-        for item in items:
-            raw_id = item.get("id")
-            if not raw_id or raw_id in seen_ids:
-                continue
-            seen_ids.add(raw_id)
-            norm = _normalize(item, city_id, deal_type)
-            if norm:
-                results.append(norm)
-                new_count += 1
-
-        print(f"[madlan] REST page {page}: {len(items)} items, +{new_count} new (total {len(results)})", flush=True)
-
-        if page < max_pages:
-            time.sleep(rate_s + random.uniform(0, 1.0))
-
+    print(f"[madlan] city={city_id} deal={deal_type} → {len(results)} listings total", flush=True)
     return results
 
 
@@ -321,33 +264,11 @@ def scrape(
     city_id: int,
     deal_type: str = "forsale",
     max_pages: int = 20,
-    rate_s: float = 1.5,
+    rate_s: float = 1.5,   # kept for API compat, unused
 ) -> list[dict[str, Any]]:
-    """
-    Scrape Madlan listings for a given city and deal type.
-
-    Tries GraphQL first; falls back to REST if GraphQL returns nothing.
-    Never raises — returns [] on total failure.
-    """
-    if city_id not in CITY_HE:
-        print(f"[madlan] Unknown city_id={city_id}.", flush=True)
-        return []
-
-    session = _session()
-
+    """Sync wrapper for async Playwright scraper. Never raises."""
     try:
-        results = _scrape_graphql(session, city_id, deal_type, max_pages, rate_s)
+        return asyncio.run(_scrape_async(city_id, deal_type, max_pages))
     except Exception as e:
-        print(f"[madlan] GraphQL scrape exception for city={city_id}: {e}", flush=True)
-        results = []
-
-    if not results:
-        print(f"[madlan] GraphQL returned 0 results for city={city_id} — trying REST fallback", flush=True)
-        try:
-            results = _scrape_rest(session, city_id, deal_type, max_pages, rate_s)
-        except Exception as e:
-            print(f"[madlan] REST fallback exception for city={city_id}: {e}", flush=True)
-            results = []
-
-    print(f"[madlan] city={city_id} deal={deal_type} → {len(results)} listings total", flush=True)
-    return results
+        print(f"[madlan] scrape error city={city_id}: {e}", flush=True)
+        return []

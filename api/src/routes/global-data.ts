@@ -137,9 +137,9 @@ export async function globalDataRoute(app: FastifyInstance) {
       },
       {
         name: 'Madlan Scraper',
-        technique: 'GraphQL + REST fallback',
+        technique: 'Playwright intercept (PerimeterX bypass)',
         description:
-          'Scrapes Madlan.co.il via GraphQL API with automatic REST fallback. Runs daily after Yad2 sweep (offset ~25 min). Data merged into the same Listing table for unified comparison.',
+          'Navigates Madlan.co.il in a real browser to bypass PerimeterX bot protection, then intercepts the listing search API response. Runs daily after Yad2 sweep (~25 min offset).',
         recordsCount: listingsBySource.find(r => r.source === 'madlan')?.count ?? 0,
         status: 'active',
       },

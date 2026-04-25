@@ -54,6 +54,22 @@ export async function jobsRoute(app: FastifyInstance) {
     }
   })
 
+  // Manually queue the weekly sold-transactions ingest job for testing
+  app.post('/api/jobs/ingest-sold-transactions', async (req, reply) => {
+    const boss = (app as unknown as { boss: import('pg-boss') }).boss
+    if (!boss) {
+      reply.code(503)
+      return { error: 'pg-boss not available' }
+    }
+    try {
+      await boss.send('scrape-sold-transactions', {})
+      return { queued: true, message: 'Sold transaction ingest queued — check Railway logs in ~5 min' }
+    } catch (err) {
+      reply.code(500)
+      return { error: String(err) }
+    }
+  })
+
   app.get('/api/jobs/telegram-status', async () => {
     return { configured: telegramEnabled() }
   })
