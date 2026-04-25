@@ -7,11 +7,12 @@ import { ApiService, City, Neighborhood, Listing, ScanParams, Stats } from '../s
 import { ResultsComponent } from '../results/results.component'
 import { SettingsComponent } from '../settings/settings.component'
 import { GlobalDataComponent } from '../global-data/global-data.component'
+import { TransactionsComponent } from '../transactions/transactions.component'
 
 @Component({
   selector: 'app-search',
   standalone: true,
-  imports: [CommonModule, FormsModule, ResultsComponent, SettingsComponent, GlobalDataComponent],
+  imports: [CommonModule, FormsModule, ResultsComponent, SettingsComponent, GlobalDataComponent, TransactionsComponent],
   templateUrl: './search.component.html',
   styleUrls: ['./search.component.scss'],
 })
@@ -31,7 +32,7 @@ export class SearchComponent implements OnInit {
   jobId: string | null = null
   private pollSub?: Subscription
 
-  mode: 'search' | 'opportunities' | 'dashboard' | 'about' | 'settings' | 'global-data' = 'search'
+  mode: 'search' | 'opportunities' | 'dashboard' | 'about' | 'settings' | 'global-data' | 'transactions' = 'search'
   computingComparisons = false
   comparisonStatus = ''
 
@@ -171,7 +172,7 @@ export class SearchComponent implements OnInit {
     )
   }
 
-  switchMode(m: 'search' | 'opportunities' | 'dashboard' | 'about' | 'settings' | 'global-data') {
+  switchMode(m: 'search' | 'opportunities' | 'dashboard' | 'about' | 'settings' | 'global-data' | 'transactions') {
     this.mode = m
     this.listings = []
     this.total = 0

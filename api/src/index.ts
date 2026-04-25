@@ -10,6 +10,7 @@ import { dealsRoute } from './routes/deals'
 import { statsRoute } from './routes/stats'
 import { profilesRoute } from './routes/profiles'
 import { globalDataRoute } from './routes/global-data'
+import { transactionsRoute } from './routes/transactions'
 import { registerWorkers } from './jobs/workers'
 import { registerScheduler } from './jobs/scheduler'
 
@@ -35,6 +36,7 @@ async function start() {
   await app.register(statsRoute)
   await app.register(profilesRoute)
   await app.register(globalDataRoute)
+  await app.register(transactionsRoute)
 
   const port = Number(process.env.PORT ?? 3000)
   await app.listen({ port, host: '0.0.0.0' })

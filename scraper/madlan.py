@@ -1,6 +1,6 @@
 """
 Madlan.co.il listing scraper.
-Uses the Madlan GraphQL API (no Cloudflare protection; plain requests library).
+Uses the Madlan GraphQL API (no Cloudflare protection).
 
 Output is normalized to the same format as yad2.py so the same upsertListing
 helper in workers.ts can persist both sources without modification.
@@ -12,7 +12,7 @@ import time
 from datetime import datetime, timezone
 from typing import Any
 
-import requests
+import httpx
 
 GRAPHQL_URL = "https://www.madlan.co.il/api/graphql"
 REST_URL = "https://www.madlan.co.il/nadlan/api/listings"
@@ -76,10 +76,8 @@ query searchListings($where: ListingSearch!, $pagination: Pagination) {
 """.strip()
 
 
-def _session() -> requests.Session:
-    s = requests.Session()
-    s.headers.update(_DEFAULT_HEADERS)
-    return s
+def _session() -> httpx.Client:
+    return httpx.Client(headers=_DEFAULT_HEADERS, follow_redirects=True)
 
 
 def _normalize(item: dict[str, Any], city_id: int, deal_type: str) -> dict[str, Any] | None:
@@ -170,7 +168,7 @@ def _normalize(item: dict[str, Any], city_id: int, deal_type: str) -> dict[str, 
 
 
 def _scrape_graphql(
-    session: requests.Session,
+    session: httpx.Client,
     city_id: int,
     deal_type: str,
     max_pages: int,
@@ -252,7 +250,7 @@ def _scrape_graphql(
 
 
 def _scrape_rest(
-    session: requests.Session,
+    session: httpx.Client,
     city_id: int,
     deal_type: str,
     max_pages: int,

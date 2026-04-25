@@ -147,6 +147,22 @@ export class ApiService {
   getGlobalData(): Observable<GlobalData> {
     return this.http.get<GlobalData>(`${API}/api/global-data`)
   }
+
+  getTransactions(params: {
+    cityIds?: number[]
+    months?: number
+    minRooms?: number
+    maxRooms?: number
+    page?: number
+  }): Observable<TransactionsResponse> {
+    const p: Record<string, string> = {}
+    if (params.cityIds?.length) p['cityIds'] = params.cityIds.join(',')
+    if (params.months)   p['months']   = String(params.months)
+    if (params.minRooms) p['minRooms'] = String(params.minRooms)
+    if (params.maxRooms) p['maxRooms'] = String(params.maxRooms)
+    if (params.page)     p['page']     = String(params.page)
+    return this.http.get<TransactionsResponse>(`${API}/api/transactions`, { params: p })
+  }
 }
 
 export interface ProfileWithUser {
@@ -190,6 +206,43 @@ export interface DataSkill {
   description: string
   recordsCount: number
   status: 'active' | 'available' | 'planned'
+}
+
+export interface TxCityStat {
+  cityRaw: string
+  cityId: number | null
+  count: number
+  avgPrice: number
+  medianPrice: number
+  avgPricePerSqm: number
+  medianPricePerSqm: number
+  avgAreaSqm: number
+  minPrice: number
+  maxPrice: number
+  avgRooms: number
+  trend: { month: string; count: number; avgPricePerSqm: number }[]
+}
+
+export interface SoldTx {
+  id: string
+  address: string
+  cityRaw: string | null
+  cityId: number | null
+  priceNis: number
+  areaSqm: number | null
+  pricePerSqm: number | null
+  rooms: number | null
+  floor: number | null
+  transactionDate: string | null
+}
+
+export interface TransactionsResponse {
+  months: number
+  cityStats: TxCityStat[]
+  recentTransactions: SoldTx[]
+  total: number
+  page: number
+  pageSize: number
 }
 
 export interface GlobalData {

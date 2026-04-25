@@ -1,0 +1,195 @@
+<div class="tx-page">
+
+  <!-- ── Filter bar ──────────────────────────────────────────────────── -->
+  <div class="tx-filters">
+
+    <div class="filter-group">
+      <div class="filter-label">Compare cities <span class="hint">(up to 3)</span></div>
+      <div class="city-chips">
+        @for (c of cities; track c.id) {
+          <button
+            class="city-chip"
+            [class.active]="selectedCityIds.has(c.id)"
+            [disabled]="!selectedCityIds.has(c.id) && selectedCityIds.size >= 3"
+            (click)="toggleCity(c.id)"
+          >{{ c.label }}</button>
+        }
+      </div>
+    </div>
+
+    <div class="filter-row">
+      <div class="filter-group">
+        <div class="filter-label">Period</div>
+        <select class="filter-select" [(ngModel)]="months">
+          @for (opt of monthOptions; track opt.value) {
+            <option [value]="opt.value">{{ opt.label }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <div class="filter-label">Rooms</div>
+        <div class="room-chips">
+          <button class="room-chip" [class.active]="isRoomActive(1,2)"   (click)="setRooms(1,2)">1–2</button>
+          <button class="room-chip" [class.active]="isRoomActive(2,3)"   (click)="setRooms(2,3)">2–3</button>
+          <button class="room-chip" [class.active]="isRoomActive(3,4)"   (click)="setRooms(3,4)">3–4</button>
+          <button class="room-chip" [class.active]="isRoomActive(4,5)"   (click)="setRooms(4,5)">4–5</button>
+          <button class="room-chip" [class.active]="isRoomActive(5,99)"  (click)="setRooms(5,99)">5+</button>
+        </div>
+      </div>
+
+      <button class="load-btn" (click)="load(1)" [disabled]="loading">
+        @if (loading) { <span class="spinner-sm"></span> } @else { Apply }
+      </button>
+    </div>
+  </div>
+
+  @if (loading && !data) {
+    <div class="tx-empty"><span class="spinner-dark"></span> Loading transactions…</div>
+  }
+
+  @if (data) {
+
+    <!-- ── Comparison cards ──────────────────────────────────────────── -->
+    <div class="compare-grid" [style.--cols]="data.cityStats.length">
+      @for (cs of data.cityStats; track cs.cityRaw; let i = $index) {
+        <div class="compare-card" [style.border-top-color]="cityColorByIdx(i)">
+          <div class="cc-title" [style.color]="cityColorByIdx(i)">{{ cs.cityRaw }}</div>
+          <div class="cc-badge">{{ cs.count | number }} deals in {{ data.months }}mo</div>
+
+          <div class="cc-stats">
+            <div class="cc-stat">
+              <div class="cc-stat-label">Median price</div>
+              <div class="cc-stat-value">{{ formatPrice(cs.medianPrice) }}</div>
+            </div>
+            <div class="cc-stat">
+              <div class="cc-stat-label">Avg price</div>
+              <div class="cc-stat-value secondary">{{ formatPrice(cs.avgPrice) }}</div>
+            </div>
+            <div class="cc-stat">
+              <div class="cc-stat-label">Median ₪/m²</div>
+              <div class="cc-stat-value">{{ formatPricePerSqm(cs.medianPricePerSqm) }}</div>
+            </div>
+            <div class="cc-stat">
+              <div class="cc-stat-label">Avg ₪/m²</div>
+              <div class="cc-stat-value secondary">{{ formatPricePerSqm(cs.avgPricePerSqm) }}</div>
+            </div>
+            <div class="cc-stat">
+              <div class="cc-stat-label">Avg size</div>
+              <div class="cc-stat-value secondary">{{ cs.avgAreaSqm ? (cs.avgAreaSqm | number:'1.0-0') + ' m²' : '—' }}</div>
+            </div>
+            <div class="cc-stat">
+              <div class="cc-stat-label">Avg rooms</div>
+              <div class="cc-stat-value secondary">{{ cs.avgRooms ? (cs.avgRooms | number:'1.1-1') : '—' }}</div>
+            </div>
+          </div>
+
+          <!-- Price range bar -->
+          <div class="cc-range">
+            <span class="range-min">{{ formatPrice(cs.minPrice) }}</span>
+            <div class="range-track">
+              <div class="range-fill" [style.background]="cityColorByIdx(i)"></div>
+            </div>
+            <span class="range-max">{{ formatPrice(cs.maxPrice) }}</span>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- ── Trend chart: avg ₪/m² over time ───────────────────────────── -->
+    @if (hasTrend) {
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title">Avg ₪/m² over time</div>
+          <div class="chart-legend">
+            @for (cs of data.cityStats; track cs.cityRaw; let i = $index) {
+              <span class="legend-dot" [style.background]="cityColorByIdx(i)"></span>
+              <span class="legend-label">{{ cs.cityRaw }}</span>
+            }
+          </div>
+        </div>
+
+        <div class="chart-wrap">
+          <svg [attr.viewBox]="'0 0 ' + chartW + ' ' + chartH" preserveAspectRatio="none" class="trend-svg">
+            @for (cs of data.cityStats; track cs.cityRaw; let i = $index) {
+              <path
+                [attr.d]="trendPath(cs)"
+                [attr.stroke]="cityColorByIdx(i)"
+                fill="none"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            }
+          </svg>
+
+          <!-- X-axis labels -->
+          <div class="chart-x-labels">
+            @for (m of allMonths; track m; let i = $index) {
+              @if (i === 0 || i === allMonths.length - 1 || i % xLabelStride() === 0) {
+                <span class="x-label">{{ m.slice(2) }}</span>
+              }
+            }
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- ── Recent transactions table ─────────────────────────────────── -->
+    <div class="tx-table-card">
+      <div class="tx-table-header">
+        <div class="tx-table-title">Recent Transactions</div>
+        <div class="tx-table-meta">{{ data.total | number }} total · page {{ page }} of {{ totalPages }}</div>
+      </div>
+
+      <div class="tx-table-wrap">
+        <table class="tx-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>City</th>
+              <th>Address</th>
+              <th class="num">Rooms</th>
+              <th class="num">Size</th>
+              <th class="num">Price</th>
+              <th class="num">₪/m²</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (tx of data.recentTransactions; track tx.id) {
+              <tr>
+                <td class="tx-date">{{ formatDate(tx.transactionDate) }}</td>
+                <td>
+                  <span class="city-dot" [style.background]="cityColor(tx.cityRaw ?? '')"></span>
+                  {{ tx.cityRaw ?? '—' }}
+                </td>
+                <td class="tx-addr">{{ tx.address }}</td>
+                <td class="num">{{ tx.rooms ?? '—' }}</td>
+                <td class="num">{{ tx.areaSqm ? (tx.areaSqm | number:'1.0-0') + ' m²' : '—' }}</td>
+                <td class="num tx-price">{{ formatPrice(tx.priceNis) }}</td>
+                <td class="num">{{ formatPricePerSqm(tx.pricePerSqm) }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      @if (totalPages > 1) {
+        <div class="tx-pagination">
+          <button class="page-btn" [disabled]="page <= 1" (click)="load(page - 1)">‹</button>
+          @for (p of pages; track p) {
+            <button class="page-btn" [class.active]="p === page" (click)="load(p)">{{ p }}</button>
+          }
+          <button class="page-btn" [disabled]="page >= totalPages" (click)="load(page + 1)">›</button>
+        </div>
+      }
+    </div>
+
+  } @else {
+    @if (!loading) {
+      <div class="tx-empty">Select cities and click Apply to see transaction data.</div>
+    }
+  }
+
+</div>
