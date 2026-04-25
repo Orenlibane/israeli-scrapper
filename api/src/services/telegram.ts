@@ -27,6 +27,11 @@ async function broadcast(text: string): Promise<void> {
   await Promise.all(CHAT_IDS.map(id => sendMessage(id, text)))
 }
 
+function fmtPrice(p: number): string {
+  if (p >= 1_000_000) return '₪' + (p / 1_000_000).toFixed(2).replace(/\.?0+$/, '') + 'M'
+  return '₪' + Math.round(p / 1_000) + 'K'
+}
+
 export async function notifyNewListing(l: {
   id: string
   cityRaw: string | null
@@ -58,57 +63,53 @@ export async function notifyTopDeals(prisma: PrismaClient): Promise<void> {
   const deals = await prisma.listingComparison.findMany({
     where: {
       classification: { in: ['deal', 'below_market'] },
-      pctDiff: { gte: -60 },   // exclude likely data errors
+      pctDiff: { gte: -60 },
       listing: { isActive: true },
     },
     include: {
       listing: {
         select: {
-          priceNis: true,
-          rooms: true,
-          areaSqm: true,
-          floor: true,
-          cityRaw: true,
-          neighborhoodRaw: true,
-          dealType: true,
-          sourceUrl: true,
-          firstSeenAt: true,
+          priceNis: true, pricePerSqm: true,
+          rooms: true, areaSqm: true, floor: true,
+          cityRaw: true, neighborhoodRaw: true, street: true,
+          dealType: true, sourceUrl: true, firstSeenAt: true,
         },
       },
     },
-    orderBy: { pctDiff: 'asc' },   // most discounted first
-    take: 8,
+    orderBy: { pctDiff: 'asc' },
+    take: 10,
   })
 
   if (!deals.length) return
-
-  function fmt(p: number): string {
-    if (p >= 1_000_000) return '₪' + (p / 1_000_000).toFixed(2).replace(/\.?0+$/, '') + 'M'
-    return '₪' + Math.round(p / 1_000) + 'K'
-  }
-
-  const lines = deals.map((d, i) => {
-    const l = d.listing
-    const loc   = [l.cityRaw, l.neighborhoodRaw].filter(Boolean).join(', ')
-    const rooms = l.rooms   ? `${l.rooms}r` : ''
-    const sqm   = l.areaSqm ? `${Math.round(l.areaSqm)}m²` : ''
-    const fl    = l.floor != null ? `fl.${l.floor}` : ''
-    const meta  = [rooms, sqm, fl].filter(Boolean).join('  ')
-    const pct   = d.pctDiff.toFixed(1)
-    const days  = Math.floor((Date.now() - new Date(l.firstSeenAt).getTime()) / 86_400_000)
-    const age   = days === 0 ? '🆕' : `${days}d`
-    const badge = d.pctDiff <= -15 ? '🔥' : '📉'
-    const warn  = d.pctDiff < -35 ? ' ⚠️' : ''
-    const link  = l.sourceUrl ? `\n   🔗 <a href="${l.sourceUrl}">Yad2</a>` : ''
-    return `${i + 1}. ${badge} <b>${fmt(l.priceNis)}</b> (${pct}%)${warn}  ${meta}\n   📍 ${loc} · ${age}${link}`
-  })
 
   const saleCount = deals.filter(d => d.listing.dealType === 'sale').length
   const rentCount = deals.length - saleCount
   const parts = [saleCount && `${saleCount} sale`, rentCount && `${rentCount} rent`].filter(Boolean).join(' · ')
   const header = `🏆 <b>Top deals right now</b>  (${parts})\n`
 
-  await broadcast(header + '\n' + lines.join('\n\n'))
+  const rows = deals.map((d, i) => {
+    const l      = d.listing
+    const badge  = d.pctDiff <= -15 ? '🔥' : '📉'
+    const warn   = d.pctDiff < -35  ? ' ⚠️' : ''
+    const price  = fmtPrice(l.priceNis)
+    const pct    = d.pctDiff.toFixed(0) + '%'
+    const rooms  = l.rooms    ? `${l.rooms}r` : '?'
+    const sqm    = l.areaSqm  ? `${Math.round(l.areaSqm)}m²` : '—'
+    const fl     = l.floor != null ? `fl${l.floor}` : '—'
+    const mktPpm = d.medianPricePerSqm ? `mkt ₪${Math.round(d.medianPricePerSqm / 1000)}K/m²` : ''
+    const days   = Math.floor((Date.now() - new Date(l.firstSeenAt).getTime()) / 86_400_000)
+    const age    = days === 0 ? 'today' : `${days}d`
+    const loc    = [l.cityRaw, l.neighborhoodRaw].filter(Boolean).join(' · ')
+    const addr   = l.street ? `, ${l.street}` : ''
+    const comps  = `${d.numTransactions} comps`
+    const link   = l.sourceUrl ? ` <a href="${l.sourceUrl}">→</a>` : ''
+
+    const line1  = `<code>${String(i+1).padStart(2)}. ${badge} ${price.padEnd(8)} ${pct.padStart(5)}${warn}  ${rooms}  ${sqm}  ${fl}</code>`
+    const line2  = `   📍 ${loc}${addr} · ${age} · ${mktPpm} · ${comps}${link}`
+    return line1 + '\n' + line2
+  })
+
+  await broadcast(header + '\n' + rows.join('\n\n'))
 }
 
 // ─── Single-chat send (used by profile alerts) ────────────────────────────────
@@ -144,11 +145,6 @@ const CITY_MAP: CityEntry[] = [
 
 function cityEnById(id: number): string {
   return CITY_MAP.find(c => c.id === id)?.en ?? String(id)
-}
-
-function fmtPrice(p: number): string {
-  if (p >= 1_000_000) return '₪' + (p / 1_000_000).toFixed(2).replace(/\.?0+$/, '') + 'M'
-  return '₪' + Math.round(p / 1_000) + 'K'
 }
 
 export async function notifyProfileDeals(prisma: PrismaClient): Promise<void> {
@@ -195,16 +191,10 @@ export async function notifyProfileDeals(prisma: PrismaClient): Promise<void> {
         listing: {
           select: {
             id: true,
-            priceNis: true,
-            pricePerSqm: true,
-            rooms: true,
-            areaSqm: true,
-            floor: true,
-            cityRaw: true,
-            neighborhoodRaw: true,
-            dealType: true,
-            sourceUrl: true,
-            firstSeenAt: true,
+            priceNis: true, pricePerSqm: true,
+            rooms: true, areaSqm: true, floor: true,
+            cityRaw: true, neighborhoodRaw: true, street: true,
+            dealType: true, sourceUrl: true, firstSeenAt: true,
           },
         },
       },
@@ -234,25 +224,31 @@ export async function notifyProfileDeals(prisma: PrismaClient): Promise<void> {
       `<i>${newListings.length} new since last alert</i>`,
     ].join('\n')
 
-    const colHeader = `<code> #  ${' Price   '.padEnd(8)} Rm  ₪/m²   Disc  </code>`
+    const colHeader = `<code> #   Price    Disc   Rm  m²   Fl</code>`
 
     const rows = deals.map((d, i) => {
       const l      = d.listing
       const isNew  = !sentIds.has(l.id)
-      const price  = fmtPrice(l.priceNis)
-      const rooms  = l.rooms    ? `${l.rooms}r` : '?r'
-      const ppm2   = l.pricePerSqm ? `${Math.round(l.pricePerSqm / 1000)}K` : '—'
-      const pct    = d.pctDiff.toFixed(0)
       const badge  = d.pctDiff <= -15 ? '🔥' : '📉'
+      const warn   = d.pctDiff < -35  ? ' ⚠️' : ''
+      const price  = fmtPrice(l.priceNis)
+      const pct    = d.pctDiff.toFixed(0) + '%'
+      const rooms  = l.rooms    ? `${l.rooms}r` : '?'
+      const sqm    = l.areaSqm  ? `${Math.round(l.areaSqm)}m²` : '—'
+      const fl     = l.floor != null ? `fl${l.floor}` : '—'
       const days   = Math.floor((Date.now() - new Date(l.firstSeenAt).getTime()) / 86_400_000)
-      const age    = days === 0 ? 'today' : `${days}d`
+      const age    = days === 0 ? 'today' : `${days}ago`
       const loc    = [l.cityRaw, l.neighborhoodRaw].filter(Boolean).join(' · ')
+      const addr   = l.street ? `, ${l.street}` : ''
+      const mktPpm = d.medianPricePerSqm ? `mkt ₪${Math.round(d.medianPricePerSqm / 1000)}K` : ''
+      const myPpm  = l.pricePerSqm       ? `yours ₪${Math.round(l.pricePerSqm / 1000)}K` : ''
+      const comps  = `${d.numTransactions} comps`
       const link   = l.sourceUrl ? ` <a href="${l.sourceUrl}">→</a>` : ''
-      const newTag = isNew ? ' 🆕 NEW' : ''
+      const newTag = isNew ? ' 🆕' : ''
 
       const num    = String(i + 1).padStart(2)
-      const row    = `<code>${num}  ${price.padEnd(8)} ${rooms.padEnd(4)} ${ppm2.padEnd(6)} ${pct}%${badge}</code>${newTag}`
-      const meta   = `   📍 ${loc} · ${age}${link}`
+      const row    = `<code>${num}. ${badge} ${price.padEnd(8)} ${pct.padStart(5)}${warn}  ${rooms.padEnd(3)} ${sqm.padEnd(5)} ${fl}</code>${newTag}`
+      const meta   = `   📍 ${loc}${addr} · ${age}\n   ${[mktPpm, myPpm, comps].filter(Boolean).join(' · ')}${link}`
       return row + '\n' + meta
     })
 
