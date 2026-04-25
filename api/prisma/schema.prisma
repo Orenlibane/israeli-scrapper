@@ -53,6 +53,56 @@ model Listing {
 
   history        ListingHistory[]
   comparisons    ListingComparison[]
+  alerts         Alert[]
+}
+
+model User {
+  id               String   @id @default(cuid())
+  telegramChatId   String   @unique
+  telegramUsername String?
+  status           String   @default("active")   // active | stopped
+  createdAt        DateTime @default(now())
+  profiles         SearchProfile[]
+  alerts           Alert[]
+}
+
+model SearchProfile {
+  id                String    @id @default(cuid())
+  userId            String
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name              String
+  cityIds           Int[]     @default([])
+  dealType          String    @default("sale")   // sale | rent
+  minPrice          Int?
+  maxPrice          Int?
+  minRooms          Float?
+  maxRooms          Float?
+  minSqm            Float?
+  maxSqm            Float?
+  minPricePerSqm    Int?
+  maxPricePerSqm    Int?
+  minFloor          Int?
+  maxFloor          Int?
+  propertyTypes     String?
+  posterType        String?
+  scanIntervalHours Int       @default(4)   // 1 | 2 | 4 | 8 | 24
+  isActive          Boolean   @default(true)
+  lastSentAt        DateTime?
+  createdAt         DateTime  @default(now())
+  alerts            Alert[]
+}
+
+model Alert {
+  id             String    @id @default(cuid())
+  userId         String
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  profileId      String?
+  profile        SearchProfile? @relation(fields: [profileId], references: [id], onDelete: SetNull)
+  listingId      String?
+  listing        Listing?  @relation(fields: [listingId], references: [id], onDelete: SetNull)
+  alertType      String    // new_listing | price_drop | opportunity
+  sentAt         DateTime  @default(now())
+  deliveryStatus String    @default("sent")   // sent | failed
 }
 
 model ListingHistory {

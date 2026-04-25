@@ -1,7 +1,7 @@
 import type PgBoss from 'pg-boss'
 import type { PrismaClient } from '@prisma/client'
 import { computeComparisons } from './comparison-worker'
-import { notifyTopDeals, telegramEnabled } from '../services/telegram'
+import { notifyTopDeals, notifyProfileDeals, telegramEnabled } from '../services/telegram'
 import { ingestSoldTransactions } from './workers'
 
 // All DB city IDs — must match the City table seed
@@ -71,6 +71,14 @@ export async function registerScheduler(boss: PgBoss, prisma: PrismaClient) {
     console.log('[scheduler] Sending hourly top deals digest…')
     await notifyTopDeals(prisma)
     console.log('[scheduler] Top deals digest sent')
+  })
+
+  // Profile deal alerts — every 30 minutes
+  await boss.schedule('check-profile-alerts', '*/30 * * * *', {})
+  await boss.work('check-profile-alerts', async () => {
+    console.log('[scheduler] Checking profile-based deal alerts…')
+    await notifyProfileDeals(prisma)
+    console.log('[scheduler] Profile alert check done')
   })
 
   console.log(`[scheduler] Daily scan registered — cron "${DAILY_CRON}" (06:00 Israel time)`)
