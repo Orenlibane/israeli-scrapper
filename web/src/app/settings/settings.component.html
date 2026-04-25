@@ -1,0 +1,134 @@
+<div class="settings-page">
+
+  <!-- ── Section 1: Alert Profiles ───────────────────── -->
+  <div class="settings-section">
+    <div class="section-header">
+      <h3>Alert Profiles</h3>
+      <p>Manage Telegram alert profiles across all users</p>
+    </div>
+
+    @if (loading) {
+      <div class="empty-state">
+        <span class="spinner-dark"></span> Loading profiles…
+      </div>
+    } @else if (profiles.length === 0) {
+      <div class="empty-state">
+        No profiles yet — users create profiles via /newprofile in Telegram.
+      </div>
+    } @else {
+      <div class="profile-list">
+        @for (p of profiles; track p.id) {
+          <div class="profile-row">
+
+            <!-- Left: user / profile meta -->
+            <div class="profile-meta">
+              <div class="profile-user">
+                <span class="status-dot" [class.active]="p.isActive"></span>
+                @if (p.user.telegramUsername) {
+                  <span>&#64;{{ p.user.telegramUsername }}</span>
+                } @else {
+                  <span>anonymous</span>
+                }
+              </div>
+              <div class="profile-name">{{ p.name }} &nbsp;·&nbsp; created {{ p.createdAt | date:'dd MMM yyyy' }}</div>
+              <div class="profile-filters">
+                @for (city of p.cityNames; track city) {
+                  <span class="filter-badge">{{ city }}</span>
+                }
+                <span class="filter-badge">{{ p.dealType }}</span>
+                @if (p.minRooms) {
+                  <span class="filter-badge">{{ p.minRooms }}{{ p.maxRooms && p.maxRooms !== p.minRooms ? '–' + p.maxRooms : '' }} rooms</span>
+                }
+                @if (p.maxPrice) {
+                  <span class="filter-badge">max {{ formatPrice(p.maxPrice) }}</span>
+                }
+              </div>
+            </div>
+
+            <!-- Right: controls -->
+            <div class="profile-controls">
+              <select
+                class="interval-select"
+                [value]="p.scanIntervalHours"
+                (change)="changeInterval(p, +$any($event.target).value)"
+              >
+                @for (opt of intervalOptions; track opt.value) {
+                  <option [value]="opt.value" [selected]="opt.value === p.scanIntervalHours">{{ opt.label }}</option>
+                }
+              </select>
+
+              <button
+                class="toggle-btn"
+                [class.active]="p.isActive"
+                [class.paused]="!p.isActive"
+                (click)="toggleActive(p)"
+              >
+                @if (p.isActive) { ⏸ Pause } @else { ▶ Resume }
+              </button>
+
+              <button class="delete-btn" (click)="deleteProfile(p)">Delete</button>
+
+              <div class="profile-meta-right">
+                <div>Last: {{ formatLastSent(p.lastSentAt) }}</div>
+                <div>{{ p.alertCount }} sent</div>
+                @if (savingId === p.id) {
+                  <div class="saving-hint">Saving…</div>
+                }
+              </div>
+            </div>
+
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- ── Section 2: System Schedule ──────────────────── -->
+  <div class="settings-section">
+    <div class="section-header">
+      <h3>System Schedule</h3>
+      <p>Automated cron jobs running on Railway</p>
+    </div>
+    <div class="sched-grid">
+      @for (s of schedules; track s.cron) {
+        <div class="sched-card">
+          <div class="sched-label">
+            <span class="status-dot active"></span>
+            {{ s.label }}
+          </div>
+          <div class="sched-cron"><code>{{ s.cron }}</code></div>
+          <div class="sched-note">{{ s.note }}</div>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- ── Section 3: Telegram ──────────────────────────── -->
+  <div class="settings-section">
+    <div class="section-header">
+      <h3>Telegram Bot</h3>
+    </div>
+    <div class="sched-grid">
+      <div class="sched-card">
+        <div class="sched-label">
+          <span class="status-dot active"></span>
+          Bot connected via webhook
+        </div>
+        <div class="sched-note">
+          Users interact via /start in Telegram to create alert profiles.
+        </div>
+        <div class="sched-note" style="margin-top: 8px;">
+          <code>/start</code> &nbsp;
+          <code>/newprofile</code> &nbsp;
+          <code>/myprofiles</code> &nbsp;
+          <code>/stop</code> &nbsp;
+          <code>/help</code> &nbsp;
+          <code>/search</code> &nbsp;
+          <code>/top</code> &nbsp;
+          <code>/stats</code>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

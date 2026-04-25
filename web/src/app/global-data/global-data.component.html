@@ -1,0 +1,146 @@
+<div class="gd-page">
+
+  @if (loading) {
+    <div class="gd-loading">
+      <span class="spinner-dark"></span> Loading global data…
+    </div>
+  }
+
+  @if (data) {
+
+    <!-- ── KPI row ──────────────────────────────────── -->
+    <div class="gd-kpis">
+      <div class="gd-kpi">
+        <div class="val">{{ formatCount(totalListings) }}</div>
+        <div class="lbl">Total listings</div>
+      </div>
+      <div class="gd-kpi">
+        <div class="val">{{ formatCount(data.soldTransactions.total) }}</div>
+        <div class="lbl">Sold transactions</div>
+      </div>
+      <div class="gd-kpi">
+        <div class="val">{{ formatCount(data.comparisons.total) }}</div>
+        <div class="lbl">Comparisons</div>
+      </div>
+      <div class="gd-kpi">
+        <div class="val">{{ data.users.active }}</div>
+        <div class="lbl">Active users</div>
+      </div>
+    </div>
+
+    <!-- ── Data Skills ──────────────────────────────── -->
+    <div class="gd-section">
+      <div class="gd-section-header">
+        <h3>Data Pipeline — Skills &amp; Techniques Used</h3>
+      </div>
+      <div class="skills-grid">
+        @for (skill of data.dataSkills; track skill.name) {
+          <div class="skill-card">
+            <div class="skill-header">
+              <span class="skill-name">{{ skill.name }}</span>
+              <span class="skill-badge" [class]="skillStatusClass(skill.status)">{{ skillStatusLabel(skill.status) }}</span>
+            </div>
+            <div>
+              <span class="skill-technique">{{ skill.technique }}</span>
+            </div>
+            <div class="skill-desc">{{ skill.description }}</div>
+            <div class="skill-count">{{ formatCount(skill.recordsCount) }}</div>
+            <div class="skill-count-lbl">records</div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- ── Comparison Benchmark ─────────────────────── -->
+    <div class="gd-section">
+      <div class="gd-section-header">
+        <h3>Comparison Benchmark Sources</h3>
+      </div>
+      <div class="benchmark-row">
+        <div class="bench-block">
+          <div class="bench-val">{{ formatCount(data.comparisons.soldBacked) }}</div>
+          <div class="bench-lbl">Sold Transactions — Real market data</div>
+          <div class="bench-bar-wrap">
+            <div class="bench-bar bench-bar--sold" [style.width.%]="soldBackedPct"></div>
+          </div>
+          <div class="bench-pct">{{ soldBackedPct }}%</div>
+        </div>
+        <div class="bench-block">
+          <div class="bench-val">{{ formatCount(data.comparisons.activeListingBacked) }}</div>
+          <div class="bench-lbl">Active Listings — Peer group median</div>
+          <div class="bench-bar-wrap">
+            <div class="bench-bar bench-bar--active" [style.width.%]="100 - soldBackedPct"></div>
+          </div>
+          <div class="bench-pct">{{ 100 - soldBackedPct }}%</div>
+        </div>
+      </div>
+      <div class="bench-note">
+        Priority: sold transactions (≥5 comparables in last 24 months) → fallback to active listing median
+      </div>
+    </div>
+
+    <!-- ── City Coverage ────────────────────────────── -->
+    <div class="gd-section">
+      <div class="gd-section-header">
+        <h3>City Coverage</h3>
+      </div>
+      <table class="coverage-table">
+        <thead>
+          <tr>
+            <th>City</th>
+            <th>Listings</th>
+            <th>Comparisons</th>
+            <th>Sold Tx</th>
+            <th>Bar</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (city of data.cityCoverage; track city.cityRaw) {
+            <tr>
+              <td>{{ city.cityRaw }}</td>
+              <td>{{ formatCount(city.listings) }}</td>
+              <td>{{ formatCount(city.comparisons) }}</td>
+              <td>{{ formatCount(city.soldTx) }}</td>
+              <td>
+                <div class="cov-bar-wrap">
+                  <div class="cov-bar" [style.width.%]="maxCityCoverage > 0 ? (city.listings / maxCityCoverage) * 100 : 0"></div>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ── Recent Scan Jobs ──────────────────────────── -->
+    <div class="gd-section">
+      <div class="gd-section-header">
+        <h3>Recent Scan Jobs</h3>
+      </div>
+      <div class="jobs-list">
+        @for (job of data.recentJobs; track job.id) {
+          <div class="job-row">
+            <span class="job-status-badge" [class]="jobStatusClass(job.status)">{{ job.status }}</span>
+            <span class="job-params">
+              {{ getJobLabel(job.params) }}
+            </span>
+            <span class="job-meta">{{ formatCount(job.listingsFound) }} found</span>
+            <span class="job-meta">{{ formatDate(job.startedAt) }}</span>
+            <span class="job-meta">
+              @if (job.finishedAt) {
+                {{ jobDuration(job.startedAt, job.finishedAt) }}
+              } @else {
+                —
+              }
+            </span>
+            @if (job.error) {
+              <span class="job-error">{{ job.error }}</span>
+            }
+          </div>
+        }
+      </div>
+    </div>
+
+  }
+
+</div>

@@ -16,7 +16,7 @@
     }
 
     .header {
-      max-width: 960px;
+      max-width: 1000px;
       margin: 0 auto 40px;
     }
 
@@ -44,7 +44,7 @@
     }
 
     .overall-bar-wrap {
-      max-width: 960px;
+      max-width: 1000px;
       margin: 0 auto 40px;
       background: #1e293b;
       border: 1px solid #334155;
@@ -82,7 +82,7 @@
     }
 
     .grid {
-      max-width: 960px;
+      max-width: 1000px;
       margin: 0 auto;
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -163,13 +163,15 @@
     .icon-done    { background: #065f46; color: #6ee7b7; }
     .icon-wip     { background: #1e3a5f; color: #60a5fa; }
     .icon-todo    { background: #1e293b; border: 1px solid #475569; color: #475569; }
+    .icon-deviate { background: #451a03; color: #fb923c; }
 
-    .item-done { color: #6ee7b7; text-decoration: line-through; text-decoration-color: #2d6a4f; }
-    .item-wip  { color: #93c5fd; }
-    .item-todo { color: #94a3b8; }
+    .item-done    { color: #6ee7b7; text-decoration: line-through; text-decoration-color: #2d6a4f; }
+    .item-wip     { color: #93c5fd; }
+    .item-todo    { color: #94a3b8; }
+    .item-deviate { color: #fdba74; }
 
     .section-title {
-      max-width: 960px;
+      max-width: 1000px;
       margin: 0 auto 16px;
       font-size: 11px;
       font-weight: 700;
@@ -178,8 +180,174 @@
       color: #475569;
     }
 
+    /* ── PRD Comparison ──────────────────────────────────────────────────── */
+
+    .prd-section {
+      max-width: 1000px;
+      margin: 40px auto 0;
+    }
+
+    .prd-intro {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 16px 20px;
+      font-size: 13px;
+      color: #94a3b8;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    .prd-intro strong { color: #e2e8f0; }
+
+    .prd-legend {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .prd-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: #94a3b8;
+    }
+
+    .leg-dot {
+      width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+    }
+    .leg-done    { background: #10b981; }
+    .leg-extra   { background: #8b5cf6; }
+    .leg-deviate { background: #f97316; }
+    .leg-missing { background: #ef4444; }
+
+    .prd-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .prd-table th {
+      background: #0f172a;
+      color: #64748b;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      padding: 10px 14px;
+      text-align: left;
+      border-bottom: 1px solid #334155;
+    }
+
+    .prd-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid #1e293b;
+      color: #cbd5e1;
+      vertical-align: top;
+      line-height: 1.45;
+    }
+
+    .prd-table tr:last-child td { border-bottom: none; }
+    .prd-table tr:hover td { background: #1a2540; }
+
+    .prd-table .area-label {
+      font-weight: 600;
+      color: #94a3b8;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      background: #131c2e;
+      padding: 8px 14px;
+      border-bottom: 1px solid #334155;
+    }
+
+    .status-pill {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 99px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+    }
+
+    .pill-done    { background: #064e3b; color: #6ee7b7; }
+    .pill-extra   { background: #2e1065; color: #c4b5fd; }
+    .pill-deviate { background: #431407; color: #fb923c; }
+    .pill-missing { background: #450a0a; color: #fca5a5; }
+    .pill-partial { background: #1c1917; color: #a8a29e; border: 1px solid #44403c; }
+
+    .prd-note {
+      font-size: 11.5px;
+      color: #64748b;
+      margin-top: 4px;
+      line-height: 1.45;
+    }
+
+    /* ── Arch Divergence ─────────────────────────────────────────────────── */
+
+    .divergence-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .div-card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 14px 16px;
+    }
+
+    .div-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .div-card h4 { font-size: 13px; font-weight: 600; color: #f1f5f9; }
+
+    .div-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      font-size: 12px;
+    }
+
+    .div-prd {
+      background: #0f172a;
+      border: 1px solid #1e3a5f;
+      border-radius: 6px;
+      padding: 6px 10px;
+      color: #93c5fd;
+    }
+
+    .div-actual {
+      background: #0f172a;
+      border: 1px solid #064e3b;
+      border-radius: 6px;
+      padding: 6px 10px;
+      color: #6ee7b7;
+    }
+
+    .div-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #475569;
+      margin-bottom: 3px;
+    }
+
+    /* ── Gap / Extra sections ────────────────────────────────────────────── */
+
     .gap-section {
-      max-width: 960px;
+      max-width: 1000px;
       margin: 40px auto 0;
     }
 
@@ -209,7 +377,7 @@
     .gap-card p  { font-size: 12px; color: #64748b; line-height: 1.5; }
 
     .stack-section {
-      max-width: 960px;
+      max-width: 1000px;
       margin: 40px auto 0;
     }
 
@@ -232,7 +400,7 @@
     .stack-pill span { color: #60a5fa; font-weight: 600; }
 
     .changelog-section {
-      max-width: 960px;
+      max-width: 1000px;
       margin: 40px auto 0;
     }
 
@@ -291,7 +459,7 @@
   <div class="header">
     <h1>🏠 Israeli Nadlan Scraper — Development Progress</h1>
     <p>Real-time tracking of the build. Updated every time Claude pushes changes.</p>
-    <span class="last-updated">Last updated: 2026-04-25 (build 7)</span>
+    <span class="last-updated">Last updated: 2026-04-25 (build 8)</span>
   </div>
 
   <!-- Overall Progress -->
@@ -300,7 +468,7 @@
     <div class="progress-bar">
       <div class="progress-bar-fill" style="width: 97%"></div>
     </div>
-    <div class="progress-pct">97% complete — fully deployed on Railway: scraper, API, web UI, Telegram bot, comparison engine, dashboard, hourly deal alerts</div>
+    <div class="progress-pct">97% complete — fully deployed on Railway: scraper, API, web UI, Telegram bot, comparison engine, dashboard with graphs, hourly deal alerts</div>
   </div>
 
   <!-- Phase grid -->
@@ -335,15 +503,15 @@
         <span class="phase-title">Phase 2 — Enrichment</span>
         <span class="phase-badge badge-active">Active</span>
       </div>
-      <div class="phase-bar"><div class="phase-bar-fill" style="width:55%"></div></div>
+      <div class="phase-bar"><div class="phase-bar-fill" style="width:65%"></div></div>
       <ul class="phase-items">
         <li><span class="icon icon-done">✓</span><span class="item-done">Market comparison engine — p10/p90 trimming, median ₪/m², classification</span></li>
         <li><span class="icon icon-done">✓</span><span class="item-done">Opportunities tab — deals sorted by biggest discount with "why" explanation</span></li>
-        <li><span class="icon icon-done">✓</span><span class="item-done">Outlier detection — data-error guards (priceNis ≥ ₪50K, ⚠️ badges for &lt;-35% / -60%)</span></li>
-        <li><span class="icon icon-done">✓</span><span class="item-done">Dashboard — KPI cards, classification distribution bars, city deal leaderboard</span></li>
+        <li><span class="icon icon-done">✓</span><span class="item-done">Outlier detection — priceNis ≥ ₪50K guard, ⚠️ badges for &lt;-35% / -60%</span></li>
+        <li><span class="icon icon-done">✓</span><span class="item-done">Dashboard — KPI cards, SVG donut chart, 14-day trend, city table, deal leaderboard</span></li>
         <li><span class="icon icon-done">✓</span><span class="item-done">Advanced search filters — floor, ₪/m², property type, poster type, freshness</span></li>
         <li><span class="icon icon-done">✓</span><span class="item-done">Sort options — price, ₪/m², size, rooms, floor, days on market, best deal</span></li>
-        <li><span class="icon icon-done">✓</span><span class="item-done">Neighborhood filter fix — query by neighborhoodRaw text (scraper doesn't set FK)</span></li>
+        <li><span class="icon icon-done">✓</span><span class="item-done">Neighborhood filter — queries by neighborhoodRaw text (scraper doesn't set FK)</span></li>
         <li><span class="icon icon-wip">~</span><span class="item-wip">Madlan GraphQL scraper — second data source</span></li>
         <li><span class="icon icon-todo">·</span><span class="item-todo">Hebrew address normalization + geo proximity</span></li>
         <li><span class="icon icon-todo">·</span><span class="item-todo">Cross-source deduplication</span></li>
@@ -385,6 +553,397 @@
 
   </div>
 
+  <!-- ═══ PRD COMPARISON ═══════════════════════════════════════════════════ -->
+
+  <div class="prd-section">
+    <div class="section-title" style="margin-top:0">PRD vs Reality — Full Comparison</div>
+
+    <div class="prd-intro">
+      Comparison of the original <strong>PRD (Product Requirements Document)</strong> against what was actually built and deployed as of 2026-04-25.
+      The project deviated in several meaningful ways — some are <strong>deliberate improvements</strong> (e.g. pg-boss instead of Redis+Bull),
+      others are <strong>scope decisions</strong> (e.g. broadcast bot instead of per-user profiles), and some are <strong>genuine gaps</strong> that remain open.
+    </div>
+
+    <div class="prd-legend">
+      <div class="prd-legend-item"><div class="leg-dot leg-done"></div> Delivered as specified</div>
+      <div class="prd-legend-item"><div class="leg-dot leg-extra"></div> Built beyond PRD scope</div>
+      <div class="prd-legend-item"><div class="leg-dot leg-deviate"></div> Delivered with deviation</div>
+      <div class="prd-legend-item"><div class="leg-dot leg-missing"></div> Not built / missing</div>
+    </div>
+
+    <!-- Table: Tech Stack -->
+    <table class="prd-table" style="margin-bottom:20px; border-radius:10px; overflow:hidden; border:1px solid #334155;">
+      <thead>
+        <tr><th>Area</th><th>PRD spec</th><th>Reality</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        <tr><td colspan="4" class="area-label">Tech Stack (Section 3)</td></tr>
+        <tr>
+          <td>Backend</td>
+          <td>Node.js + Fastify</td>
+          <td>Node.js + Fastify ✓</td>
+          <td><span class="status-pill pill-done">Delivered</span></td>
+        </tr>
+        <tr>
+          <td>Queue / Scheduler</td>
+          <td>Bull Queue + Redis</td>
+          <td>pg-boss (PostgreSQL-backed)
+            <div class="prd-note">Redis dropped entirely — pg-boss achieves same scheduling with one fewer service. Better Railway fit.</div>
+          </td>
+          <td><span class="status-pill pill-deviate">Deviation</span></td>
+        </tr>
+        <tr>
+          <td>Database</td>
+          <td>PostgreSQL + Prisma</td>
+          <td>PostgreSQL + Prisma ✓</td>
+          <td><span class="status-pill pill-done">Delivered</span></td>
+        </tr>
+        <tr>
+          <td>Scraping</td>
+          <td>axios + Playwright (fallback)</td>
+          <td>Python + curl_cffi TLS impersonation (Yad2); Playwright for nadlan.gov.il
+            <div class="prd-note">Python microservice chosen over Node for TLS fingerprinting. Playwright used for nadlan (not Yad2 fallback).</div>
+          </td>
+          <td><span class="status-pill pill-deviate">Deviation</span></td>
+        </tr>
+        <tr>
+          <td>Telegram</td>
+          <td>grammY (TypeScript-first)</td>
+          <td>Native fetch — no grammY library
+            <div class="prd-note">Avoided grammY to reduce dependencies. Bot works via Telegram Bot API directly.</div>
+          </td>
+          <td><span class="status-pill pill-deviate">Deviation</span></td>
+        </tr>
+        <tr>
+          <td>Frontend</td>
+          <td>Angular (Admin UI)</td>
+          <td>Angular 17 standalone — full user-facing app (not just admin)</td>
+          <td><span class="status-pill pill-extra">Beyond PRD</span></td>
+        </tr>
+        <tr>
+          <td>Monitoring</td>
+          <td>Grafana + Prometheus</td>
+          <td>Not built — Railway logs only</td>
+          <td><span class="status-pill pill-missing">Missing</span></td>
+        </tr>
+
+        <tr><td colspan="4" class="area-label">Data Sources (Section 4)</td></tr>
+        <tr>
+          <td>Yad2</td>
+          <td>Internal JSON API via axios + curl_cffi</td>
+          <td>curl_cffi in Python microservice ✓</td>
+          <td><span class="status-pill pill-done">Delivered</span></td>
+        </tr>
+        <tr>
+          <td>nadlan.gov.il</td>
+          <td>Official REST API (easy)</td>
+          <td>Playwright scraper ✓ — sold transactions in DB</td>
+          <td><span class="status-pill pill-done">Delivered</span></td>
+        </tr>
+        <tr>
+          <td>Madlan</td>
+          <td>Phase 2 — GraphQL API</td>
+          <td>In progress</td>
+          <td><span class="status-pill pill-partial">WIP</span></td>
+        </tr>
+        <tr>
+          <td>Homeless / Komo</td>
+          <td>Phase 4</td>
+          <td>Not started</td>
+          <td><span class="status-pill pill-missing">Not started</span></td>
+        </tr>
+
+        <tr><td colspan="4" class="area-label">Data Model (Section 6)</td></tr>
+        <tr>
+          <td>listings</td>
+          <td>id, source, url, price, sqm, rooms, floor, city, neighborhood, published_at, first_seen_at, status</td>
+          <td>Full model + pricePerSqm, posterType, lat/lon, isActive ✓ (extended)</td>
+          <td><span class="status-pill pill-done">Delivered</span></td>
+        </tr>
+        <tr>
+          <td>listing_history</td>
+          <td>field_changed, old_value, new_value, detected_at</td>
+          <td>ListingHistory model ✓</td>
+          <td><span class="status-pill pill-done">Delivered</span></td>
+        </tr>
+        <tr>
+          <td>sold_transactions</td>
+          <td>address, lat/lng, price, sqm, price_per_sqm, rooms, transaction_date</td>
+          <td>SoldTransaction model ✓ — also has gush/helka, cityRaw, cityId</td>
+          <td><span class="status-pill pill-done">Delivered</span></td>
+        </tr>
+        <tr>
+          <td>listing_comparisons</td>
+          <td>listing_id, profile_id, reference_metric, num_transactions, pct_diff, classification</td>
+          <td>ListingComparison ✓ — extended with benchmarkSource, soldComparables, medianPricePerSqm
+            <div class="prd-note">profile_id removed (no profile system). Added benchmark source tracking.</div>
+          </td>
+          <td><span class="status-pill pill-deviate">Deviation</span></td>
+        </tr>
+        <tr>
+          <td>jobs</td>
+          <td>id, profile_id, started_at, finished_at, status, listings_found, alerts_sent, error_log</td>
+          <td>ScanJob model — missing profile_id and alerts_sent (no profile system)</td>
+          <td><span class="status-pill pill-partial">Partial</span></td>
+        </tr>
+        <tr>
+          <td>users</td>
+          <td>telegram_chat_id, phone, status, quiet_hours</td>
+          <td><strong>Not built</strong> — bot uses env var TELEGRAM_CHAT_ID broadcast list instead</td>
+          <td><span class="status-pill pill-missing">Missing</span></td>
+        </tr>
+        <tr>
+          <td>search_profiles</td>
+          <td>user_id, cities[], price range, rooms, floor, elevator, parking, balcony, scan_times_per_day, alert_mode</td>
+          <td><strong>Not built</strong> — no per-user profile system</td>
+          <td><span class="status-pill pill-missing">Missing</span></td>
+        </tr>
+        <tr>
+          <td>alerts</td>
+          <td>user_id, listing_id, alert_type, message_text, sent_at, delivery_status</td>
+          <td><strong>Not built</strong> — no alert log table</td>
+          <td><span class="status-pill pill-missing">Missing</span></td>
+        </tr>
+        <tr>
+          <td>cities / neighborhoods</td>
+          <td>Not in PRD data model</td>
+          <td>City + Neighborhood models added for city dropdown and filtering</td>
+          <td><span class="status-pill pill-extra">Beyond PRD</span></td>
+        </tr>
+
+        <tr><td colspan="4" class="area-label">Telegram Bot — User Flow (Section 7)</td></tr>
+        <tr>
+          <td>Onboarding flow</td>
+          <td>/start → language → /newprofile → city → neighborhoods → price → rooms → scan frequency → alert mode → confirmation</td>
+          <td><strong>Not built</strong> — no onboarding flow exists
+            <div class="prd-note">Bot is a broadcast tool, not a self-service signup.</div>
+          </td>
+          <td><span class="status-pill pill-missing">Missing</span></td>
+        </tr>
+        <tr>
+          <td>Profile commands</td>
+          <td>/myprofiles, /pause, /resume, /delete, /summary, /stop</td>
+          <td><strong>Not built</strong> — no profile system</td>
+          <td><span class="status-pill pill-missing">Missing</span></td>
+        </tr>
+        <tr>
+          <td>Alert message format</td>
+          <td>Price, sqm, ₪/m², rooms, floor, days on market, market comparison, tags, link</td>
+          <td>Hourly top-deals digest — includes all key fields + discount % + ⚠️ flag
+            <div class="prd-note">Format is close to PRD spec. Not per-alert per-user but broadcast to configured chat IDs.</div>
+          </td>
+          <td><span class="status-pill pill-deviate">Deviation</span></td>
+        </tr>
+        <tr>
+          <td>Bot commands</td>
+          <td>/start, /newprofile, /myprofiles, /pause, /resume, /delete, /summary, /stop</td>
+          <td>/help, /cities, /search &lt;city&gt; [rooms] [sale|rent], /top &lt;city&gt;, /stats
+            <div class="prd-note">Completely different command set. PRD commands are profile-management; actual commands are data-query tools.</div>
+          </td>
+          <td><span class="status-pill pill-deviate">Deviation</span></td>
+        </tr>
+
+        <tr><td colspan="4" class="area-label">Alert Decision Rules (Section 8)</td></tr>
+        <tr>
+          <td>New listing alert</td>
+          <td>Never seen before, passes hard filters</td>
+          <td>notifyNewListing() fires on first-seen listings ✓
+            <div class="prd-note">Broadcasts to all CHAT_IDs — no per-user filter matching.</div>
+          </td>
+          <td><span class="status-pill pill-deviate">Deviation</span></td>
+        </tr>
+        <tr>
+          <td>Price drop alert</td>
+          <td>Price decreased vs last snapshot</td>
+          <td>notifyPriceDrop() via ListingHistory detection ✓</td>
+          <td><span class="status-pill pill-done">Delivered</span></td>
+        </tr>
+        <tr>
+          <td>Returned listing</td>
+          <td>Listing disappeared then came back</td>
+          <td>Not built</td>
+          <td><span class="status-pill pill-missing">Missing</span></td>
+        </tr>
+        <tr>
+          <td>Long on market (45+ days)</td>
+          <td>Active > 45 days + passes filters</td>
+          <td>Not built</td>
+          <td><span class="status-pill pill-missing">Missing</span></td>
+        </tr>
+        <tr>
+          <td>Opportunity alert</td>
+          <td>Below-market classification + score threshold</td>
+          <td>Hourly top-deals digest (top 8 by pctDiff) ✓
+            <div class="prd-note">Broadcast-mode rather than per-user triggered.</div>
+          </td>
+          <td><span class="status-pill pill-deviate">Deviation</span></td>
+        </tr>
+        <tr>
+          <td>Market classification thresholds</td>
+          <td>Deal &gt;10% below median, Below Market 5–10%, At Market ±5%, Overpriced &gt;5%</td>
+          <td>Deal ≤ −15%, Below Market ≤ −5%, At Market ≤ +5%, Overpriced &gt; +5%
+            <div class="prd-note">"Deal" threshold tightened from −10% to −15% to reduce noise in active-listing benchmarks.</div>
+          </td>
+          <td><span class="status-pill pill-deviate">Deviation</span></td>
+        </tr>
+        <tr>
+          <td>Scoring engine (0–100)</td>
+          <td>Price/sqm 40%, freshness 20%, price drop 20%, days 10%, feature match 10%</td>
+          <td>Not built — listings sorted by pctDiff only, no composite score</td>
+          <td><span class="status-pill pill-missing">Missing</span></td>
+        </tr>
+
+        <tr><td colspan="4" class="area-label">Functional Requirements (Section 9)</td></tr>
+        <tr>
+          <td>Search profile management</td>
+          <td>Multiple cities, price/sqm/rooms/floor/elevator/parking/balcony, pause/resume/delete, quiet hours</td>
+          <td><strong>Not built</strong> — no user or profile system exists at all</td>
+          <td><span class="status-pill pill-missing">Missing</span></td>
+        </tr>
+        <tr>
+          <td>Monitoring frequency</td>
+          <td>2x/4x/8x per day, per-user profile setting</td>
+          <td>1× daily global scan across 18 cities. No per-user frequency setting.</td>
+          <td><span class="status-pill pill-missing">Missing</span></td>
+        </tr>
+        <tr>
+          <td>Change detection</td>
+          <td>Price, text, status changes</td>
+          <td>ListingHistory tracks price and field changes ✓. Status (active/removed) tracked via isActive ✓</td>
+          <td><span class="status-pill pill-done">Delivered</span></td>
+        </tr>
+        <tr>
+          <td>Cross-source deduplication</td>
+          <td>Phase 2 requirement</td>
+          <td>Not built — listings have source prefix in ID (e.g. "yad2:abc123") but no cross-source matching</td>
+          <td><span class="status-pill pill-missing">Missing</span></td>
+        </tr>
+        <tr>
+          <td>Daily summary delivery</td>
+          <td>Morning summary digest per user</td>
+          <td>Not built</td>
+          <td><span class="status-pill pill-missing">Missing</span></td>
+        </tr>
+        <tr>
+          <td>Delivery retry + log</td>
+          <td>3× retry with backoff, delivery_status log</td>
+          <td>Not built — fire-and-forget fetch, no retry, no alerts table</td>
+          <td><span class="status-pill pill-missing">Missing</span></td>
+        </tr>
+        <tr>
+          <td>Admin UI — job history, source health, alerts</td>
+          <td>Phase 3 admin dashboard</td>
+          <td>Partial — dashboard shows stats/classification/city trends. No job history table, no source health, no alert log.</td>
+          <td><span class="status-pill pill-partial">Partial</span></td>
+        </tr>
+
+        <tr><td colspan="4" class="area-label">Built Beyond PRD Scope</td></tr>
+        <tr>
+          <td>Angular web UI</td>
+          <td>Admin-only, Phase 3</td>
+          <td>Full user-facing app delivered in Phase 1: search, results, opportunities, dashboard (SVG charts), about, WhatsApp share, quick-city rail, 8 sort keys, advanced filters (floor, ₪/m², property type, poster type, freshness)</td>
+          <td><span class="status-pill pill-extra">Beyond PRD</span></td>
+        </tr>
+        <tr>
+          <td>Dashboard graphs</td>
+          <td>Not in PRD at all</td>
+          <td>SVG donut classification chart, 14-day new-listings trend bar chart, clickable city overview table, deal leaderboard with relative bars</td>
+          <td><span class="status-pill pill-extra">Beyond PRD</span></td>
+        </tr>
+        <tr>
+          <td>Two-tier benchmark</td>
+          <td>PRD: compare to sold transactions only</td>
+          <td>Priority 1: sold transactions (≥5 within 24 months). Fallback: active listing median (p10–p90 trimmed). benchmarkSource and soldComparables fields show which was used.</td>
+          <td><span class="status-pill pill-extra">Beyond PRD</span></td>
+        </tr>
+        <tr>
+          <td>Telegram test button</td>
+          <td>Not in PRD</td>
+          <td>POST /api/jobs/notify-telegram in web UI — triggers instant broadcast for testing</td>
+          <td><span class="status-pill pill-extra">Beyond PRD</span></td>
+        </tr>
+        <tr>
+          <td>WhatsApp sharing</td>
+          <td>PRD replaced WhatsApp with Telegram</td>
+          <td>Each listing in results table has a WhatsApp deep-link share button</td>
+          <td><span class="status-pill pill-extra">Beyond PRD</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Architecture Divergence -->
+    <div class="section-title" style="margin-top:32px">Key Architecture Divergences</div>
+    <div class="divergence-grid">
+
+      <div class="div-card">
+        <div class="div-card-header">
+          <h4>Queue / Scheduler</h4>
+          <span class="status-pill pill-deviate">Changed</span>
+        </div>
+        <div class="div-row">
+          <div class="div-prd"><div class="div-label">PRD</div>Bull Queue + Redis (separate service)</div>
+          <div class="div-actual"><div class="div-label">Actual</div>pg-boss — PostgreSQL-backed, no Redis needed</div>
+        </div>
+      </div>
+
+      <div class="div-card">
+        <div class="div-card-header">
+          <h4>User Model</h4>
+          <span class="status-pill pill-missing">Biggest gap</span>
+        </div>
+        <div class="div-row">
+          <div class="div-prd"><div class="div-label">PRD</div>Multi-user: users table, search_profiles, per-user alert delivery, /start onboarding</div>
+          <div class="div-actual"><div class="div-label">Actual</div>Single broadcast: TELEGRAM_CHAT_ID env var list, no user table, no profiles</div>
+        </div>
+      </div>
+
+      <div class="div-card">
+        <div class="div-card-header">
+          <h4>Telegram Library</h4>
+          <span class="status-pill pill-deviate">Changed</span>
+        </div>
+        <div class="div-row">
+          <div class="div-prd"><div class="div-label">PRD</div>grammY — TypeScript-first, Bot API v9.5, plugin ecosystem</div>
+          <div class="div-actual"><div class="div-label">Actual</div>Native fetch to Telegram Bot API — zero dependencies</div>
+        </div>
+      </div>
+
+      <div class="div-card">
+        <div class="div-card-header">
+          <h4>Comparison Benchmark</h4>
+          <span class="status-pill pill-extra">Enhanced</span>
+        </div>
+        <div class="div-row">
+          <div class="div-prd"><div class="div-label">PRD</div>Sold transactions only (nadlan.gov.il)</div>
+          <div class="div-actual"><div class="div-label">Actual</div>Sold transactions first (≥5), fallback to active listing median with p10/p90 trim</div>
+        </div>
+      </div>
+
+      <div class="div-card">
+        <div class="div-card-header">
+          <h4>Frontend Scope</h4>
+          <span class="status-pill pill-extra">Far beyond PRD</span>
+        </div>
+        <div class="div-row">
+          <div class="div-prd"><div class="div-label">PRD</div>Angular admin UI — Phase 3 (users, jobs, source health)</div>
+          <div class="div-actual"><div class="div-label">Actual</div>Full user-facing app with search, filters, sorting, charts, WhatsApp share — Phase 1</div>
+        </div>
+      </div>
+
+      <div class="div-card">
+        <div class="div-card-header">
+          <h4>"Deal" Threshold</h4>
+          <span class="status-pill pill-deviate">Changed</span>
+        </div>
+        <div class="div-row">
+          <div class="div-prd"><div class="div-label">PRD</div>Deal = &gt;10% below area median</div>
+          <div class="div-actual"><div class="div-label">Actual</div>Deal = ≤ −15% — tightened to reduce noise from active-listing benchmarks</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
   <!-- Tech Stack -->
   <div class="stack-section">
     <div class="section-title" style="margin-top:0">Tech Stack (Deployed)</div>
@@ -402,34 +961,48 @@
 
   <!-- Known Gaps -->
   <div class="gap-section">
-    <div class="section-title" style="margin-top:0">Remaining Gaps</div>
+    <div class="section-title" style="margin-top:0">Remaining Gaps vs PRD</div>
     <div class="gap-grid">
       <div class="gap-card">
-        <div class="gap-icon">⚠️</div>
+        <div class="gap-icon">🔴</div>
+        <div>
+          <h4>No user / profile system</h4>
+          <p>The biggest PRD gap. No users table, no search_profiles, no per-user alert delivery. Bot is a broadcast tool. Adding multi-user support requires schema additions (users, search_profiles, alerts) + full onboarding flow.</p>
+        </div>
+      </div>
+      <div class="gap-card">
+        <div class="gap-icon">🔴</div>
+        <div>
+          <h4>Telegram bot commands don't match PRD</h4>
+          <p>PRD specifies /start → onboarding, /myprofiles, /pause, /resume, /delete, /summary, /stop. Built: /search, /top, /stats, /cities, /help. Completely different model — data-query vs profile-management.</p>
+        </div>
+      </div>
+      <div class="gap-card">
+        <div class="gap-icon">🟡</div>
         <div>
           <h4>Comparison data quality</h4>
-          <p>Comparisons use active listing prices, not sold transactions. The priceNis ≥ ₪50K guard removes most data errors, but extreme outliers can still appear when sparse peer groups skew the median.</p>
+          <p>Most comparisons fall back to active listing median (not sold transactions) due to sparse nadlan.gov.il data per city+rooms bucket. PRD assumed sold-transaction data would be primary.</p>
         </div>
       </div>
       <div class="gap-card">
-        <div class="gap-icon">⚠️</div>
+        <div class="gap-icon">🟡</div>
         <div>
-          <h4>Neighborhood FK not set by scraper</h4>
-          <p>Scheduled scans don't set neighborhoodId FK on listings (only neighborhoodRaw text). Filter now queries by text match, but FK consistency is missing. Workaround: retroactive backfill job.</p>
+          <h4>No scoring engine</h4>
+          <p>PRD defines a 0–100 composite score (price/sqm 40%, freshness 20%, price drop 20%, days 10%, feature 10%). Not built — opportunities are sorted purely by pctDiff.</p>
         </div>
       </div>
       <div class="gap-card">
-        <div class="gap-icon">⚠️</div>
+        <div class="gap-icon">🟡</div>
         <div>
-          <h4>Single data source</h4>
-          <p>Only Yad2 is scraped. Madlan and other sources would increase coverage and comparison accuracy, especially for sparse city+room combinations.</p>
+          <h4>Missing alert types</h4>
+          <p>"Returned listing" (re-listed after going inactive) and "Long on market" (45+ days) alerts are in the PRD but not implemented. ListingHistory data exists to support both.</p>
         </div>
       </div>
       <div class="gap-card">
-        <div class="gap-icon">❓</div>
+        <div class="gap-icon">⚪</div>
         <div>
-          <h4>Hourly digest frequency</h4>
-          <p>Top deals are sent to Telegram every hour. This may be noisy. Consider batching to every 2–4 hours or only sending when new deals appear since last digest.</p>
+          <h4>No Grafana / Prometheus</h4>
+          <p>PRD includes observability stack. Currently only Railway logs. Low priority until multi-user scale is reached.</p>
         </div>
       </div>
     </div>
@@ -439,6 +1012,15 @@
   <div class="changelog-section">
     <div class="section-title" style="margin-top:0">Changelog</div>
     <div class="changelog">
+
+      <div class="changelog-entry">
+        <div class="changelog-date">2026-04-25 — Build 8</div>
+        <ul>
+          <li><strong>PRD comparison added</strong>: progress.html updated with full PRD vs reality table — delivered/deviation/missing/beyond-PRD breakdown across all 9 PRD sections. Architecture divergence cards added.</li>
+          <li><strong>Dashboard graphs deployed</strong>: SVG donut classification chart, 14-day new-listings trend bar chart, clickable city overview table (filters dashboard by city), deal leaderboard with rank badges and relative bars. Dashboard context flows from city selector.</li>
+          <li><strong>Stats API enhanced</strong>: <code>/api/stats</code> now accepts <code>cityId</code> and <code>dealType</code> query params; returns <code>listingsByDay</code> (14-day raw SQL), <code>cityStats</code> (groupBy), <code>topDealCities</code>.</li>
+        </ul>
+      </div>
 
       <div class="changelog-entry">
         <div class="changelog-date">2026-04-25 — Build 7</div>

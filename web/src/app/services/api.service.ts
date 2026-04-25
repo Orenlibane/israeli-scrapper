@@ -123,4 +123,58 @@ export class ApiService {
   getJob(id: string): Observable<Job> {
     return this.http.get<Job>(`${API}/api/jobs/${id}`)
   }
+
+  getProfiles(): Observable<ProfileWithUser[]> {
+    return this.http.get<ProfileWithUser[]>(`${API}/api/profiles`)
+  }
+
+  updateProfile(id: string, patch: { isActive?: boolean; scanIntervalHours?: number }): Observable<ProfileWithUser> {
+    return this.http.patch<ProfileWithUser>(`${API}/api/profiles/${id}`, patch)
+  }
+
+  deleteProfile(id: string): Observable<{ deleted: boolean }> {
+    return this.http.delete<{ deleted: boolean }>(`${API}/api/profiles/${id}`)
+  }
+
+  getGlobalData(): Observable<GlobalData> {
+    return this.http.get<GlobalData>(`${API}/api/global-data`)
+  }
+}
+
+export interface ProfileWithUser {
+  id: string
+  userId: string
+  user: { telegramChatId: string; telegramUsername: string | null; status: string }
+  name: string
+  cityIds: number[]
+  cityNames: string[]
+  dealType: string
+  minRooms: number | null
+  maxRooms: number | null
+  maxPrice: number | null
+  scanIntervalHours: number
+  isActive: boolean
+  lastSentAt: string | null
+  createdAt: string
+  alertCount: number
+}
+
+export interface DataSkill {
+  name: string
+  technique: string
+  description: string
+  recordsCount: number
+  status: 'active' | 'available' | 'planned'
+}
+
+export interface GlobalData {
+  listingsBySource: { source: string; count: number }[]
+  soldTransactions: { total: number; byCity: { cityRaw: string; count: number }[] }
+  comparisons: { total: number; soldBacked: number; activeListingBacked: number }
+  cityCoverage: { cityRaw: string; listings: number; comparisons: number; soldTx: number }[]
+  recentJobs: { id: string; status: string; listingsFound: number; params: unknown; startedAt: string; finishedAt: string | null; error: string | null }[]
+  users: { total: number; active: number }
+  profiles: { total: number; active: number }
+  alerts: { total: number; last24h: number }
+  dataSkills: DataSkill[]
 }

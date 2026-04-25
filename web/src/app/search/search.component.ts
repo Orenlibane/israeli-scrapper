@@ -5,11 +5,13 @@ import { interval, Subscription } from 'rxjs'
 import { switchMap, takeWhile } from 'rxjs/operators'
 import { ApiService, City, Neighborhood, Listing, ScanParams, Stats } from '../services/api.service'
 import { ResultsComponent } from '../results/results.component'
+import { SettingsComponent } from '../settings/settings.component'
+import { GlobalDataComponent } from '../global-data/global-data.component'
 
 @Component({
   selector: 'app-search',
   standalone: true,
-  imports: [CommonModule, FormsModule, ResultsComponent],
+  imports: [CommonModule, FormsModule, ResultsComponent, SettingsComponent, GlobalDataComponent],
   templateUrl: './search.component.html',
   styleUrls: ['./search.component.scss'],
 })
@@ -29,7 +31,7 @@ export class SearchComponent implements OnInit {
   jobId: string | null = null
   private pollSub?: Subscription
 
-  mode: 'search' | 'opportunities' | 'dashboard' | 'about' = 'search'
+  mode: 'search' | 'opportunities' | 'dashboard' | 'about' | 'settings' | 'global-data' = 'search'
   computingComparisons = false
   comparisonStatus = ''
 
@@ -169,7 +171,7 @@ export class SearchComponent implements OnInit {
     )
   }
 
-  switchMode(m: 'search' | 'opportunities' | 'dashboard' | 'about') {
+  switchMode(m: 'search' | 'opportunities' | 'dashboard' | 'about' | 'settings' | 'global-data') {
     this.mode = m
     this.listings = []
     this.total = 0

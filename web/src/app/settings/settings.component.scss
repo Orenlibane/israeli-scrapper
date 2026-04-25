@@ -1,0 +1,243 @@
+.settings-page {
+  padding-top: 24px;
+  max-width: 1000px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.settings-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.section-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+
+  h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 0;
+  }
+
+  p {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 2px;
+    margin-bottom: 0;
+  }
+}
+
+/* ── Profile list ──────────────────────────────── */
+.profile-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.profile-meta {
+  flex: 1;
+  min-width: 200px;
+}
+
+.profile-user {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #475569;
+  flex-shrink: 0;
+
+  &.active {
+    background: var(--green);
+  }
+}
+
+.profile-name {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.profile-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.filter-badge {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(59, 130, 246, 0.08);
+  color: var(--blue);
+  border: 1px solid rgba(59, 130, 246, 0.15);
+}
+
+/* ── Profile controls ──────────────────────────── */
+.profile-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.interval-select {
+  background: var(--surface-2, #1a2236);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: inherit;
+
+  &:focus {
+    outline: none;
+    border-color: var(--blue);
+  }
+}
+
+.toggle-btn {
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  border: 1px solid;
+  font-family: inherit;
+  transition: opacity 0.15s;
+
+  &:hover { opacity: 0.85; }
+
+  &.active {
+    color: var(--amber);
+    border-color: rgba(245, 158, 11, 0.25);
+    background: rgba(245, 158, 11, 0.08);
+  }
+
+  &.paused {
+    color: var(--green);
+    border-color: rgba(16, 185, 129, 0.25);
+    background: rgba(16, 185, 129, 0.08);
+  }
+}
+
+.delete-btn {
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  background: rgba(239, 68, 68, 0.08);
+  color: var(--red);
+  font-family: inherit;
+  transition: opacity 0.15s;
+
+  &:hover { opacity: 0.85; }
+}
+
+.profile-meta-right {
+  font-size: 11px;
+  color: var(--muted);
+  text-align: right;
+  line-height: 1.5;
+}
+
+.saving-hint {
+  font-size: 11px;
+  color: var(--blue);
+}
+
+/* ── Schedule grid ─────────────────────────────── */
+.sched-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+  padding: 16px 20px;
+}
+
+.sched-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+
+.sched-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sched-cron {
+  font-size: 12px;
+  color: var(--blue);
+  margin-top: 4px;
+
+  code {
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    background: none;
+    padding: 0;
+    font-size: inherit;
+    color: inherit;
+  }
+}
+
+.sched-note {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 4px;
+  line-height: 1.45;
+
+  code {
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: 11px;
+    background: rgba(59, 130, 246, 0.08);
+    color: var(--blue);
+    border: 1px solid rgba(59, 130, 246, 0.15);
+    border-radius: 3px;
+    padding: 1px 5px;
+  }
+}
+
+/* ── Empty state ───────────────────────────────── */
+.empty-state {
+  padding: 32px 20px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13.5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
