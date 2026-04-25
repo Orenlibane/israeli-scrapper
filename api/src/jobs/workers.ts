@@ -69,6 +69,49 @@ export async function registerWorkers(boss: PgBoss, prisma: PrismaClient) {
       throw err
     }
   })
+
+  await boss.work('scan-madlan', async (jobs) => {
+    const job = Array.isArray(jobs) ? jobs[0] : jobs
+    const { jobId, params } = job.data as { jobId: string; params: Record<string, unknown> }
+
+    await prisma.scanJob.update({ where: { id: jobId }, data: { status: 'running' } })
+
+    try {
+      const res = await fetch(`${SCRAPER_URL}/madlan-scrape`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(params),
+        signal: AbortSignal.timeout(5 * 60 * 1000),
+      })
+
+      if (!res.ok) throw new Error(`Madlan scraper error: ${res.status}`)
+
+      const { listings } = await res.json() as { listings: ScrapedListing[] }
+
+      const cityId = typeof params.cityId === 'number' ? params.cityId : null
+
+      const MAX_PRICE = 2_000_000_000
+
+      let saved = 0
+      for (const l of listings) {
+        if (l.price_nis > MAX_PRICE) continue
+        await upsertListing(prisma, l, cityId, null)
+        saved++
+      }
+
+      await prisma.scanJob.update({
+        where: { id: jobId },
+        data: { status: 'done', listingsFound: saved, finishedAt: new Date() },
+      })
+    } catch (err) {
+      await prisma.scanJob.update({
+        where: { id: jobId },
+        data: { status: 'failed', error: String(err), finishedAt: new Date() },
+      })
+      // Do NOT rethrow — Madlan failure must not affect Yad2 scan completion
+      console.error('[scan-madlan] Worker error (non-fatal):', err)
+    }
+  })
 }
 
 interface ScrapedListing {

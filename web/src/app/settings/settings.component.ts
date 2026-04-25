@@ -1,7 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core'
 import { CommonModule } from '@angular/common'
 import { FormsModule } from '@angular/forms'
-import { ApiService, ProfileWithUser } from '../services/api.service'
+import { ApiService, ProfileWithUser, RecentAlert } from '../services/api.service'
 
 @Component({
   selector: 'app-settings',
@@ -16,6 +16,12 @@ export class SettingsComponent implements OnInit {
   profiles: ProfileWithUser[] = []
   loading = false
   savingId: string | null = null
+  sendingNowId: string | null = null
+
+  alerts: RecentAlert[] = []
+  loadingAlerts = false
+
+  sendNowToast = false
 
   readonly intervalOptions = [
     { label: 'Every hour',  value: 1 },
@@ -26,7 +32,7 @@ export class SettingsComponent implements OnInit {
   ]
 
   readonly schedules = [
-    { label: 'Daily city scan',           cron: '0 3 * * *',    note: '06:00 Israel time — scrapes all 18 cities × 2 deal types' },
+    { label: 'Daily city scan',           cron: '0 3 * * *',    note: '06:00 Israel time — Yad2 (18 cities × 2 deal types), then Madlan ~25 min later' },
     { label: 'Mark stale listings',       cron: '30 3 * * *',   note: 'Deactivates listings not seen in 48 h' },
     { label: 'Comparison engine',         cron: '30 4 * * *',   note: '07:30 Israel time — classifies all active listings' },
     { label: 'Per-profile alerts',        cron: '*/30 * * * *', note: 'Every 30 min — checks and sends due profile alerts' },
@@ -36,6 +42,7 @@ export class SettingsComponent implements OnInit {
 
   ngOnInit() {
     this.loadProfiles()
+    this.loadAlerts()
   }
 
   loadProfiles() {
@@ -43,6 +50,14 @@ export class SettingsComponent implements OnInit {
     this.api.getProfiles().subscribe({
       next: p => { this.profiles = p; this.loading = false },
       error: () => { this.loading = false },
+    })
+  }
+
+  loadAlerts() {
+    this.loadingAlerts = true
+    this.api.getAlerts(50).subscribe({
+      next: a => { this.alerts = a; this.loadingAlerts = false },
+      error: () => { this.loadingAlerts = false },
     })
   }
 
@@ -77,6 +92,19 @@ export class SettingsComponent implements OnInit {
     })
   }
 
+  sendNow(p: ProfileWithUser) {
+    if (this.sendingNowId) return
+    this.sendingNowId = p.id
+    this.api.sendProfileNow(p.id).subscribe({
+      next: () => {
+        this.sendingNowId = null
+        this.sendNowToast = true
+        setTimeout(() => { this.sendNowToast = false }, 2500)
+      },
+      error: () => { this.sendingNowId = null },
+    })
+  }
+
   formatLastSent(iso: string | null): string {
     if (!iso) return 'Never'
     const h = Math.floor((Date.now() - new Date(iso).getTime()) / 3600000)
@@ -89,5 +117,46 @@ export class SettingsComponent implements OnInit {
     if (!n) return '—'
     if (n >= 1_000_000) return '₪' + (n / 1_000_000).toFixed(1) + 'M'
     return '₪' + Math.round(n / 1000) + 'K'
+  }
+
+  alertTypeLabel(type: string): string {
+    if (type === 'new_listing') return 'New Listing'
+    if (type === 'price_drop')  return 'Price Drop'
+    if (type === 'opportunity') return 'Opportunity'
+    return type
+  }
+
+  alertTypeClass(type: string): string {
+    if (type === 'new_listing') return 'alert-new'
+    if (type === 'price_drop')  return 'alert-drop'
+    if (type === 'opportunity') return 'alert-opp'
+    return 'alert-new'
+  }
+
+  timeAgo(iso: string): string {
+    const diff = Date.now() - new Date(iso).getTime()
+    const mins = Math.floor(diff / 60000)
+    if (mins < 1)  return 'just now'
+    if (mins < 60) return `${mins}m ago`
+    const h = Math.floor(mins / 60)
+    if (h < 24)    return `${h}h ago`
+    return `${Math.floor(h / 24)}d ago`
+  }
+
+  get totalProfiles(): number {
+    return this.profiles.length
+  }
+
+  get activeProfiles(): number {
+    return this.profiles.filter(p => p.isActive).length
+  }
+
+  get totalAlertsSent(): number {
+    return this.profiles.reduce((sum, p) => sum + p.alertCount, 0)
+  }
+
+  get alertsLast24h(): number {
+    const cutoff = Date.now() - 86400000
+    return this.alerts.filter(a => new Date(a.sentAt).getTime() > cutoff).length
   }
 }

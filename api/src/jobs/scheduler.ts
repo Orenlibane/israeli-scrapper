@@ -15,6 +15,14 @@ const DAILY_CRON = '0 3 * * *'
 // 18 cities × 2 deal types × 40s = ~24 min total sweep.
 const STAGGER_SECONDS = 40
 
+// Seconds between Madlan jobs (less aggressive rate-limiting than Yad2).
+const MADLAN_STAGGER_SECONDS = 20
+
+// Total Yad2 jobs: 18 cities × 2 deal types = 36.
+// Madlan starts after all Yad2 jobs have had time to finish:
+// 36 jobs × 40s = 1440s ≈ 24 min.  Add a 60s safety buffer → 1500s.
+const MADLAN_START_OFFSET_SECONDS = 36 * STAGGER_SECONDS + 60
+
 export async function registerScheduler(boss: PgBoss, prisma: PrismaClient) {
   // Cron fires once per day, queuing one `daily-scan-all` job.
   await boss.schedule('daily-scan-all', DAILY_CRON, {})
@@ -36,7 +44,29 @@ export async function registerScheduler(boss: PgBoss, prisma: PrismaClient) {
       }
     }
 
-    console.log(`[scheduler] Queued ${index} scan jobs (${CITY_IDS.length} cities × ${DEAL_TYPES.length} deal types)`)
+    console.log(`[scheduler] Queued ${index} Yad2 scan jobs (${CITY_IDS.length} cities × ${DEAL_TYPES.length} deal types)`)
+
+    // Queue Madlan jobs — start after all Yad2 jobs have had time to finish
+    let madlanIndex = 0
+    for (const dealType of DEAL_TYPES) {
+      for (const cityId of CITY_IDS) {
+        const params = { cityId, dealType }
+        let madlanJob: { id: string }
+        try {
+          madlanJob = await prisma.scanJob.create({ data: { params, status: 'pending' } })
+        } catch (err) {
+          console.error(`[scheduler] Failed to create Madlan ScanJob city=${cityId} deal=${dealType}:`, err)
+          madlanIndex++
+          continue
+        }
+
+        const startAfter = MADLAN_START_OFFSET_SECONDS + madlanIndex * MADLAN_STAGGER_SECONDS
+        await boss.send('scan-madlan', { jobId: madlanJob.id, params }, { startAfter })
+        madlanIndex++
+      }
+    }
+
+    console.log(`[scheduler] Queued ${madlanIndex} Madlan scan jobs (${CITY_IDS.length} cities × ${DEAL_TYPES.length} deal types, starting in ~${Math.round(MADLAN_START_OFFSET_SECONDS / 60)} min)`)
   })
 
   // Mark listings not seen in 48 h as inactive — runs daily 30 min after scans start

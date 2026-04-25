@@ -10,6 +10,7 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
 import yad2
+import madlan
 
 app = FastAPI(title="Nadlan Scraper")
 
@@ -49,6 +50,34 @@ async def scrape(params: ScrapeParams):
                 max_rooms=params.maxRooms,
                 max_pages=40,
                 rate_s=3.0,
+            ),
+        )
+        return {"listings": listings, "count": len(listings)}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+class MadlanScrapeParams(BaseModel):
+    cityId: int
+    dealType: str = "sale"
+
+
+@app.get("/madlan-health")
+def madlan_health():
+    return {"source": "madlan", "status": "ok"}
+
+
+@app.post("/madlan-scrape")
+async def madlan_scrape(params: MadlanScrapeParams):
+    deal_type = "forsale" if params.dealType == "sale" else "rent"
+    try:
+        listings = await asyncio.get_event_loop().run_in_executor(
+            None,
+            lambda: madlan.scrape(
+                city_id=params.cityId,
+                deal_type=deal_type,
+                max_pages=20,
+                rate_s=1.5,
             ),
         )
         return {"listings": listings, "count": len(listings)}

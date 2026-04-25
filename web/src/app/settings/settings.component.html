@@ -1,6 +1,31 @@
 <div class="settings-page">
 
-  <!-- ── Section 1: Alert Profiles ───────────────────── -->
+  <!-- ── Toast notification ────────────────────────── -->
+  @if (sendNowToast) {
+    <div class="toast-notify">Queued! Alert check will run shortly.</div>
+  }
+
+  <!-- ── Section 1: Stats row ───────────────────────── -->
+  <div class="stat-row">
+    <div class="stat-card stat-blue">
+      <div class="stat-value">{{ totalProfiles }}</div>
+      <div class="stat-label">Total Profiles</div>
+    </div>
+    <div class="stat-card stat-green">
+      <div class="stat-value">{{ activeProfiles }}</div>
+      <div class="stat-label">Active Profiles</div>
+    </div>
+    <div class="stat-card stat-amber">
+      <div class="stat-value">{{ totalAlertsSent }}</div>
+      <div class="stat-label">Total Alerts Sent</div>
+    </div>
+    <div class="stat-card stat-purple">
+      <div class="stat-value">{{ alertsLast24h }}</div>
+      <div class="stat-label">Alerts (Last 24h)</div>
+    </div>
+  </div>
+
+  <!-- ── Section 2: Alert Profiles ─────────────────── -->
   <div class="settings-section">
     <div class="section-header">
       <h3>Alert Profiles</h3>
@@ -66,6 +91,18 @@
                 @if (p.isActive) { ⏸ Pause } @else { ▶ Resume }
               </button>
 
+              <button
+                class="send-now-btn"
+                [disabled]="sendingNowId === p.id"
+                (click)="sendNow(p)"
+              >
+                @if (sendingNowId === p.id) {
+                  <span class="spinner-sm"></span>
+                } @else {
+                  ▷ Send now
+                }
+              </button>
+
               <button class="delete-btn" (click)="deleteProfile(p)">Delete</button>
 
               <div class="profile-meta-right">
@@ -83,7 +120,64 @@
     }
   </div>
 
-  <!-- ── Section 2: System Schedule ──────────────────── -->
+  <!-- ── Section 3: Alert Feed ──────────────────────── -->
+  <div class="settings-section">
+    <div class="section-header">
+      <h3>Recent Alert Feed</h3>
+      <p>Last 50 alerts sent across all profiles</p>
+    </div>
+
+    @if (loadingAlerts) {
+      <div class="empty-state">
+        <span class="spinner-dark"></span> Loading alerts…
+      </div>
+    } @else if (alerts.length === 0) {
+      <div class="empty-state">No alerts sent yet.</div>
+    } @else {
+      <div class="alert-feed">
+        @for (a of alerts; track a.id) {
+          <div class="alert-row">
+            <span class="alert-badge" [ngClass]="alertTypeClass(a.alertType)">
+              {{ alertTypeLabel(a.alertType) }}
+            </span>
+
+            <span class="alert-user">
+              @if (a.user?.telegramUsername) {
+                &#64;{{ a.user.telegramUsername }}
+              } @else {
+                chat {{ a.user?.telegramChatId }}
+              }
+            </span>
+
+            <span class="alert-listing">
+              @if (a.listing) {
+                {{ a.listing.cityRaw ?? '—' }}
+                @if (a.listing.rooms) { · {{ a.listing.rooms }}br }
+                · {{ formatPrice(a.listing.priceNis) }}
+                @if (a.listing.sourceUrl) {
+                  <a [href]="a.listing.sourceUrl" target="_blank" rel="noopener" class="alert-link">↗</a>
+                }
+              } @else {
+                —
+              }
+            </span>
+
+            <span class="alert-profile">
+              @if (a.profile) {
+                {{ a.profile.name }}
+              } @else {
+                —
+              }
+            </span>
+
+            <span class="alert-time">{{ timeAgo(a.sentAt) }}</span>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- ── Section 4: System Schedule ────────────────── -->
   <div class="settings-section">
     <div class="section-header">
       <h3>System Schedule</h3>
@@ -103,7 +197,7 @@
     </div>
   </div>
 
-  <!-- ── Section 3: Telegram ──────────────────────────── -->
+  <!-- ── Section 5: Telegram Bot ───────────────────── -->
   <div class="settings-section">
     <div class="section-header">
       <h3>Telegram Bot</h3>

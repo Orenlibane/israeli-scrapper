@@ -95,4 +95,51 @@ export async function profilesRoute(app: FastifyInstance) {
       return { deleted: true }
     },
   )
+
+  // GET /api/alerts?limit=50 — recent alert feed
+  app.get('/api/alerts', async (req) => {
+    const limit = Math.min(Number((req.query as Record<string, string>).limit ?? '50'), 100)
+    const safe = async <T>(fn: () => Promise<T>, fallback: T) => {
+      try { return await fn() } catch { return fallback }
+    }
+
+    return safe(() => (prisma as any).alert.findMany({
+      orderBy: { sentAt: 'desc' },
+      take: limit,
+      include: {
+        profile: { select: { name: true, dealType: true } },
+        listing: { select: { cityRaw: true, priceNis: true, rooms: true, dealType: true, sourceUrl: true, propertyType: true } },
+        user: { select: { telegramUsername: true, telegramChatId: true } },
+      },
+    }), [])
+  })
+
+  // POST /api/profiles/:id/send-now — queue an immediate alert check
+  app.post<{ Params: { id: string } }>(
+    '/api/profiles/:id/send-now',
+    async (req, reply) => {
+      const { id } = req.params
+      if (!id) {
+        return reply.status(400).send({ error: 'Invalid profile id' })
+      }
+
+      const existing = await prisma.searchProfile.findUnique({ where: { id } })
+      if (!existing) {
+        return reply.status(404).send({ error: 'Profile not found' })
+      }
+
+      try {
+        const boss = (app as any).boss
+        if (boss) {
+          await boss.send('check-profile-alerts', { profileId: id })
+          return { queued: true, message: 'Alert check queued' }
+        }
+      } catch (e) {
+        // boss not available or send failed — fall through
+      }
+
+      console.log(`[send-now] Profile ${id} requested manual alert check`)
+      return { queued: true, message: 'Alert check scheduled for next 30-min cycle' }
+    },
+  )
 }

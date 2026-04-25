@@ -136,6 +136,14 @@ export class ApiService {
     return this.http.delete<{ deleted: boolean }>(`${API}/api/profiles/${id}`)
   }
 
+  getAlerts(limit = 50): Observable<RecentAlert[]> {
+    return this.http.get<RecentAlert[]>(`${API}/api/alerts`, { params: { limit: String(limit) } })
+  }
+
+  sendProfileNow(id: string): Observable<{ queued: boolean }> {
+    return this.http.post<{ queued: boolean }>(`${API}/api/profiles/${id}/send-now`, {})
+  }
+
   getGlobalData(): Observable<GlobalData> {
     return this.http.get<GlobalData>(`${API}/api/global-data`)
   }
@@ -157,6 +165,23 @@ export interface ProfileWithUser {
   lastSentAt: string | null
   createdAt: string
   alertCount: number
+}
+
+export interface RecentAlert {
+  id: string
+  alertType: string  // 'new_listing' | 'price_drop' | 'opportunity'
+  sentAt: string
+  deliveryStatus: string
+  user: { telegramUsername: string | null; telegramChatId: string }
+  profile: { name: string; dealType: string } | null
+  listing: {
+    cityRaw: string | null
+    priceNis: number
+    rooms: number | null
+    dealType: string
+    sourceUrl: string | null
+    propertyType: string | null
+  } | null
 }
 
 export interface DataSkill {

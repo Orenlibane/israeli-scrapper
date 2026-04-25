@@ -137,11 +137,11 @@ export async function globalDataRoute(app: FastifyInstance) {
       },
       {
         name: 'Madlan Scraper',
-        technique: 'GraphQL API reverse engineering',
+        technique: 'GraphQL + REST fallback',
         description:
-          'Second listing source for cross-source validation and increased coverage.',
+          'Scrapes Madlan.co.il via GraphQL API with automatic REST fallback. Runs daily after Yad2 sweep (offset ~25 min). Data merged into the same Listing table for unified comparison.',
         recordsCount: listingsBySource.find(r => r.source === 'madlan')?.count ?? 0,
-        status: 'planned',
+        status: 'active',
       },
     ]
 
