@@ -214,10 +214,16 @@ export class AppComponent implements OnInit {
   light = false
 
   ngOnInit() {
-    const saved = typeof localStorage !== 'undefined' ? localStorage.getItem('theme') : null
-    const preferLight = window.matchMedia?.('(prefers-color-scheme: light)').matches
-    this.light = saved ? saved === 'light' : preferLight
-    this.applyTheme()
+    // Read the value already set by the inline <script> in index.html
+    const existing = document.documentElement.getAttribute('data-theme')
+    if (existing) {
+      this.light = existing === 'light'
+    } else {
+      const saved = localStorage.getItem('theme')
+      const preferLight = window.matchMedia?.('(prefers-color-scheme: light)').matches
+      this.light = saved ? saved === 'light' : preferLight
+      this.applyTheme()
+    }
   }
 
   toggleTheme() {
@@ -227,6 +233,8 @@ export class AppComponent implements OnInit {
   }
 
   private applyTheme() {
-    document.documentElement.setAttribute('data-theme', this.light ? 'light' : 'dark')
+    const theme = this.light ? 'light' : 'dark'
+    document.documentElement.setAttribute('data-theme', theme)
+    document.documentElement.className = theme === 'light' ? 'theme-light' : ''
   }
 }

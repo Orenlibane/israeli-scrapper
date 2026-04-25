@@ -2,10 +2,19 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Web</title>
+  <title>Nadlan Scout</title>
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <!-- Apply theme before Angular boots to prevent flash -->
+  <script>
+    (function () {
+      var saved = localStorage.getItem('theme');
+      var preferLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+      var isLight = saved ? saved === 'light' : preferLight;
+      document.documentElement.setAttribute('data-theme', isLight ? 'light' : 'dark');
+    })();
+  </script>
 </head>
 <body>
   <app-root></app-root>

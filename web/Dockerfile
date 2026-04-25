@@ -27,4 +27,4 @@ EXPOSE 4200
 CMD ["sh", "-c", "serve dist -l ${PORT:-4200} --no-clipboard"]
 # bust=202604250118
 # bust=202604250131
-# bust=202604250159
+# bust=202604251830

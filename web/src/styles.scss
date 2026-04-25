@@ -55,7 +55,8 @@
 }
 
 /* ── Light mode ──────────────────────────────────────────────────── */
-[data-theme="light"] {
+[data-theme="light"],
+.theme-light {
   color-scheme: light;
 
   /* Backgrounds */
@@ -102,6 +103,17 @@
 }
 
 /* ── Base ────────────────────────────────────────────────────────── */
+
+/* Smooth theme transitions on every element */
+*, *::before, *::after {
+  transition: background-color 0.2s, border-color 0.2s, color 0.15s, box-shadow 0.2s;
+}
+/* But not on animations or SVG paths — they should stay instant */
+.spinner, .spinner-dark, .spinner-sm, .spinner-tg,
+svg *, path, circle, [class*="dot"], [class*="pulse"] {
+  transition: none !important;
+}
+
 body {
   background: var(--bg);
   color: var(--text);
@@ -109,7 +121,6 @@ body {
   font-size: 14px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
-  transition: background 0.22s, color 0.22s;
 }
 
 /* ── Scrollbar ───────────────────────────────────────────────────── */
