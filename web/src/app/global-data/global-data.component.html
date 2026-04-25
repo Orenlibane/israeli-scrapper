@@ -6,135 +6,214 @@
     </div>
   }
 
+  @if (!loading && !data) {
+    <div class="gd-empty">
+      <svg viewBox="0 0 48 48" fill="none">
+        <rect x="4" y="14" width="40" height="30" rx="3" stroke="var(--border-hi)" stroke-width="2"/>
+        <path d="M14 14V10a2 2 0 012-2h16a2 2 0 012 2v4" stroke="var(--muted)" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <p>Could not load global data — API may be starting up</p>
+    </div>
+  }
+
   @if (data) {
 
     <!-- ── KPI row ──────────────────────────────────── -->
     <div class="gd-kpis">
-      <div class="gd-kpi">
-        <div class="val">{{ formatCount(totalListings) }}</div>
-        <div class="lbl">Total listings</div>
+
+      <div class="gd-kpi blue">
+        <div class="kpi-icon">
+          <svg viewBox="0 0 20 20" fill="none"><path d="M3 9.5L10 4L17 9.5V16a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" stroke="currentColor" stroke-width="1.6"/></svg>
+        </div>
+        <div class="kpi-val">{{ formatCount(totalListings) }}</div>
+        <div class="kpi-lbl">Active listings</div>
       </div>
-      <div class="gd-kpi">
-        <div class="val">{{ formatCount(data.soldTransactions.total) }}</div>
-        <div class="lbl">Sold transactions</div>
+
+      <div class="gd-kpi green">
+        <div class="kpi-icon">
+          <svg viewBox="0 0 20 20" fill="none"><path d="M17 11V5l-5-2-5 2v6l5 4 5-4z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="kpi-val">{{ formatCount(data.soldTransactions.total) }}</div>
+        <div class="kpi-lbl">Sold transactions</div>
       </div>
-      <div class="gd-kpi">
-        <div class="val">{{ formatCount(data.comparisons.total) }}</div>
-        <div class="lbl">Comparisons</div>
+
+      <div class="gd-kpi indigo">
+        <div class="kpi-icon">
+          <svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="10" r="3" stroke="currentColor" stroke-width="1.5"/></svg>
+        </div>
+        <div class="kpi-val">{{ formatCount(data.comparisons.total) }}</div>
+        <div class="kpi-lbl">Comparisons made</div>
+        <div class="kpi-sub">{{ soldBackedPct }}% real sold data</div>
       </div>
-      <div class="gd-kpi">
-        <div class="val">{{ data.users.active }}</div>
-        <div class="lbl">Active users</div>
+
+      <div class="gd-kpi amber">
+        <div class="kpi-icon">
+          <svg viewBox="0 0 20 20" fill="none"><path d="M16 4H4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2zM8 12V8l4 2-4 2z" stroke="currentColor" stroke-width="1.5"/></svg>
+        </div>
+        <div class="kpi-val">{{ formatCount(data.users.total) }}</div>
+        <div class="kpi-lbl">Telegram users</div>
+        <div class="kpi-sub">{{ data.users.active }} active</div>
+      </div>
+
+      <div class="gd-kpi purple">
+        <div class="kpi-icon">
+          <svg viewBox="0 0 20 20" fill="none"><path d="M10 2l2 4h5l-4 3 2 5-5-3-5 3 2-5-4-3h5l2-4z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="kpi-val">{{ formatCount(data.profiles.total) }}</div>
+        <div class="kpi-lbl">Search profiles</div>
+        <div class="kpi-sub">{{ data.profiles.active }} active</div>
+      </div>
+
+      <div class="gd-kpi red">
+        <div class="kpi-icon">
+          <svg viewBox="0 0 20 20" fill="none"><path d="M10 2a6 6 0 016 6v2l1.5 3h-15L4 10V8a6 6 0 016-6zm-2 14a2 2 0 104 0H8z" stroke="currentColor" stroke-width="1.5"/></svg>
+        </div>
+        <div class="kpi-val">{{ formatCount(data.alerts.last24h) }}</div>
+        <div class="kpi-lbl">Alerts sent (24h)</div>
+        <div class="kpi-sub">{{ formatCount(data.alerts.total) }} total</div>
+      </div>
+
+    </div>
+
+    <!-- ── Row 2: Skills + Source chart ─────────────── -->
+    <div class="gd-row2">
+
+      <!-- Skills pipeline -->
+      <div class="gd-card gd-card--skills">
+        <div class="card-header">
+          <div class="card-header-icon blue">
+            <svg viewBox="0 0 20 20" fill="none"><path d="M10 2L3 6v8l7 4 7-4V6l-7-4z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+          </div>
+          <h3>Data Pipeline</h3>
+          <span class="card-sub">skills &amp; techniques</span>
+        </div>
+        <div class="skills-list">
+          @for (skill of data.dataSkills; track skill.name) {
+            <div class="skill-row">
+              <div class="skill-row-left">
+                <div class="skill-name-row">
+                  <span class="skill-name">{{ skill.name }}</span>
+                  <span class="skill-badge" [class]="skillStatusClass(skill.status)">{{ skillStatusLabel(skill.status) }}</span>
+                </div>
+                <span class="skill-tech">{{ skill.technique }}</span>
+              </div>
+              <div class="skill-count-col">
+                <span class="skill-count-val">{{ formatCount(skill.recordsCount) }}</span>
+                <span class="skill-count-unit">records</span>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Source distribution chart -->
+      <div class="gd-card gd-card--sources">
+        <div class="card-header">
+          <div class="card-header-icon indigo">
+            <svg viewBox="0 0 20 20" fill="none"><path d="M3 15V9M7 15V5M11 15V8M15 15V3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          </div>
+          <h3>Listing Sources</h3>
+          <span class="card-sub">by volume</span>
+        </div>
+
+        <div class="source-chart">
+          @for (src of data.listingsBySource; track src.source; let i = $index) {
+            <div class="source-row">
+              <span class="source-name">{{ src.source }}</span>
+              <div class="source-bar-outer">
+                <div class="source-bar-fill" [style.width.%]="sourceBarWidth(src.count)" [style.background]="sourceColor(i)"></div>
+              </div>
+              <span class="source-count">{{ formatCount(src.count) }}</span>
+            </div>
+          }
+        </div>
+
+        <!-- Benchmark donut -->
+        <div class="card-divider"></div>
+        <div class="card-subheader">Comparison benchmark split</div>
+        <div class="bench-donut-row">
+          <svg class="bench-donut" viewBox="0 0 100 100">
+            @for (seg of benchDonutSegments; track seg.label) {
+              <circle r="40" cx="50" cy="50" fill="none"
+                [attr.stroke]="seg.color"
+                stroke-width="18"
+                [attr.stroke-dasharray]="seg.dashArray"
+                [attr.stroke-dashoffset]="seg.dashOffset"
+                transform="rotate(-90 50 50)"
+                stroke-linecap="butt" />
+            }
+            <text x="50" y="47" text-anchor="middle" fill="var(--text)" font-size="14" font-weight="700">{{ soldBackedPct }}%</text>
+            <text x="50" y="58" text-anchor="middle" fill="var(--muted)" font-size="6">sold data</text>
+          </svg>
+          <div class="bench-legend">
+            @for (seg of benchDonutSegments; track seg.label) {
+              <div class="bench-leg-row">
+                <span class="bench-leg-dot" [style.background]="seg.color"></span>
+                <span class="bench-leg-lbl">{{ seg.label }}</span>
+                <span class="bench-leg-pct">{{ seg.pct }}%</span>
+              </div>
+            }
+            <div class="bench-note">
+              ≥5 sold comparables (24 mo) preferred; falls back to active-listing median
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
 
-    <!-- ── Data Skills ──────────────────────────────── -->
-    <div class="gd-section">
-      <div class="gd-section-header">
-        <h3>Data Pipeline — Skills &amp; Techniques Used</h3>
+    <!-- ── City Coverage ────────────────────────────── -->
+    <div class="gd-card">
+      <div class="card-header">
+        <div class="card-header-icon green">
+          <svg viewBox="0 0 20 20" fill="none"><path d="M10 2C6.69 2 4 4.69 4 8c0 5 6 10 6 10s6-5 6-10c0-3.31-2.69-6-6-6zm0 8a2 2 0 110-4 2 2 0 010 4z" stroke="currentColor" stroke-width="1.5"/></svg>
+        </div>
+        <h3>City Coverage</h3>
+        <span class="card-sub">top {{ data.cityCoverage.length }} cities by listing volume</span>
       </div>
-      <div class="skills-grid">
-        @for (skill of data.dataSkills; track skill.name) {
-          <div class="skill-card">
-            <div class="skill-header">
-              <span class="skill-name">{{ skill.name }}</span>
-              <span class="skill-badge" [class]="skillStatusClass(skill.status)">{{ skillStatusLabel(skill.status) }}</span>
+      <div class="city-table">
+        <div class="city-table-head">
+          <span>City</span>
+          <span>Listings</span>
+          <span>Comparisons</span>
+          <span>Sold Tx</span>
+          <span>Volume</span>
+        </div>
+        @for (city of data.cityCoverage; track city.cityRaw) {
+          <div class="city-table-row">
+            <span class="city-name">{{ city.cityRaw }}</span>
+            <span class="city-num blue">{{ formatCount(city.listings) }}</span>
+            <span class="city-num">{{ formatCount(city.comparisons) }}</span>
+            <span class="city-num green">{{ formatCount(city.soldTx) }}</span>
+            <div class="city-bar-wrap">
+              <div class="city-bar" [style.width.%]="maxCityCoverage > 0 ? (city.listings / maxCityCoverage) * 100 : 0"></div>
             </div>
-            <div>
-              <span class="skill-technique">{{ skill.technique }}</span>
-            </div>
-            <div class="skill-desc">{{ skill.description }}</div>
-            <div class="skill-count">{{ formatCount(skill.recordsCount) }}</div>
-            <div class="skill-count-lbl">records</div>
           </div>
         }
       </div>
     </div>
 
-    <!-- ── Comparison Benchmark ─────────────────────── -->
-    <div class="gd-section">
-      <div class="gd-section-header">
-        <h3>Comparison Benchmark Sources</h3>
-      </div>
-      <div class="benchmark-row">
-        <div class="bench-block">
-          <div class="bench-val">{{ formatCount(data.comparisons.soldBacked) }}</div>
-          <div class="bench-lbl">Sold Transactions — Real market data</div>
-          <div class="bench-bar-wrap">
-            <div class="bench-bar bench-bar--sold" [style.width.%]="soldBackedPct"></div>
-          </div>
-          <div class="bench-pct">{{ soldBackedPct }}%</div>
-        </div>
-        <div class="bench-block">
-          <div class="bench-val">{{ formatCount(data.comparisons.activeListingBacked) }}</div>
-          <div class="bench-lbl">Active Listings — Peer group median</div>
-          <div class="bench-bar-wrap">
-            <div class="bench-bar bench-bar--active" [style.width.%]="100 - soldBackedPct"></div>
-          </div>
-          <div class="bench-pct">{{ 100 - soldBackedPct }}%</div>
-        </div>
-      </div>
-      <div class="bench-note">
-        Priority: sold transactions (≥5 comparables in last 24 months) → fallback to active listing median
-      </div>
-    </div>
-
-    <!-- ── City Coverage ────────────────────────────── -->
-    <div class="gd-section">
-      <div class="gd-section-header">
-        <h3>City Coverage</h3>
-      </div>
-      <table class="coverage-table">
-        <thead>
-          <tr>
-            <th>City</th>
-            <th>Listings</th>
-            <th>Comparisons</th>
-            <th>Sold Tx</th>
-            <th>Bar</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (city of data.cityCoverage; track city.cityRaw) {
-            <tr>
-              <td>{{ city.cityRaw }}</td>
-              <td>{{ formatCount(city.listings) }}</td>
-              <td>{{ formatCount(city.comparisons) }}</td>
-              <td>{{ formatCount(city.soldTx) }}</td>
-              <td>
-                <div class="cov-bar-wrap">
-                  <div class="cov-bar" [style.width.%]="maxCityCoverage > 0 ? (city.listings / maxCityCoverage) * 100 : 0"></div>
-                </div>
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    </div>
-
     <!-- ── Recent Scan Jobs ──────────────────────────── -->
-    <div class="gd-section">
-      <div class="gd-section-header">
+    <div class="gd-card">
+      <div class="card-header">
+        <div class="card-header-icon amber">
+          <svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.6"/><path d="M10 6v4l3 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        </div>
         <h3>Recent Scan Jobs</h3>
       </div>
       <div class="jobs-list">
         @for (job of data.recentJobs; track job.id) {
           <div class="job-row">
-            <span class="job-status-badge" [class]="jobStatusClass(job.status)">{{ job.status }}</span>
-            <span class="job-params">
-              {{ getJobLabel(job.params) }}
-            </span>
-            <span class="job-meta">{{ formatCount(job.listingsFound) }} found</span>
-            <span class="job-meta">{{ formatDate(job.startedAt) }}</span>
-            <span class="job-meta">
-              @if (job.finishedAt) {
-                {{ jobDuration(job.startedAt, job.finishedAt) }}
-              } @else {
-                —
-              }
+            <span class="job-badge" [class]="jobStatusClass(job.status)">{{ job.status }}</span>
+            <span class="job-params">{{ getJobLabel(job.params) }}</span>
+            <span class="job-found">{{ formatCount(job.listingsFound) }} found</span>
+            <span class="job-date">{{ formatDate(job.startedAt) }}</span>
+            <span class="job-dur">
+              @if (job.finishedAt) { {{ jobDuration(job.startedAt, job.finishedAt) }} }
+              @else { — }
             </span>
             @if (job.error) {
-              <span class="job-error">{{ job.error }}</span>
+              <span class="job-err">{{ job.error }}</span>
             }
           </div>
         }

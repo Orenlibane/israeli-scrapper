@@ -5,17 +5,21 @@ interface CityCoverageRow {
   cityRaw: string
   listings: number
   comparisons: number
-  sold_tx: number
+  soldTx: number
 }
 
 export async function globalDataRoute(app: FastifyInstance) {
   const prisma = (app as unknown as { prisma: PrismaClient }).prisma
 
   app.get('/api/global-data', async () => {
+    const safe = async <T>(fn: () => Promise<T>, fallback: T): Promise<T> => {
+      try { return await fn() } catch { return fallback }
+    }
+
     const [
-      listingsBySource,
+      listingsBySourceRaw,
       soldTransactionsTotal,
-      soldByCity,
+      soldByCityRaw,
       compsByBenchmark,
       cityCoverage,
       recentJobs,
@@ -51,9 +55,9 @@ export async function globalDataRoute(app: FastifyInstance) {
       prisma.$queryRaw<CityCoverageRow[]>(Prisma.sql`
         SELECT
           l."cityRaw",
-          COUNT(DISTINCT l.id)::int  AS listings,
-          COUNT(DISTINCT lc.id)::int AS comparisons,
-          COUNT(DISTINCT st.id)::int AS sold_tx
+          COUNT(DISTINCT l.id)::int   AS listings,
+          COUNT(DISTINCT lc.id)::int  AS comparisons,
+          COUNT(DISTINCT st.id)::int  AS "soldTx"
         FROM "Listing" l
         LEFT JOIN "ListingComparison" lc ON lc."listingId" = l.id
         LEFT JOIN "SoldTransaction"   st ON LOWER(TRIM(st."cityRaw")) = LOWER(TRIM(l."cityRaw"))
@@ -68,24 +72,27 @@ export async function globalDataRoute(app: FastifyInstance) {
         take: 10,
       }),
 
-      prisma.user.count(),
-      prisma.user.count({ where: { status: 'active' } }),
+      safe(() => prisma.user.count(), 0),
+      safe(() => prisma.user.count({ where: { status: 'active' } }), 0),
 
-      prisma.searchProfile.count(),
-      prisma.searchProfile.count({ where: { isActive: true } }),
+      safe(() => prisma.searchProfile.count(), 0),
+      safe(() => prisma.searchProfile.count({ where: { isActive: true } }), 0),
 
-      prisma.alert.count(),
-      prisma.alert.count({
+      safe(() => prisma.alert.count(), 0),
+      safe(() => prisma.alert.count({
         where: { sentAt: { gte: new Date(Date.now() - 86400000) } },
-      }),
+      }), 0),
     ])
+
+    const listingsBySource = listingsBySourceRaw.map(r => ({ source: r.source, count: r._count.id }))
+    const soldByCity = soldByCityRaw.map(r => ({ cityRaw: r.cityRaw ?? '', count: r._count.id }))
 
     const soldBackedCount =
       compsByBenchmark.find(c => c.benchmarkSource === 'sold_transactions')?._count.id ?? 0
     const activeBackedCount =
       compsByBenchmark.find(c => c.benchmarkSource === 'active_listings')?._count.id ?? 0
     const totalComps = soldBackedCount + activeBackedCount
-    const totalListings = listingsBySource.reduce((s, r) => s + r._count.id, 0)
+    const totalListings = listingsBySource.reduce((s, r) => s + r.count, 0)
 
     const dataSkills = [
       {
@@ -93,11 +100,11 @@ export async function globalDataRoute(app: FastifyInstance) {
         technique: 'curl_cffi TLS impersonation',
         description:
           'Bypasses Cloudflare bot detection by impersonating browser TLS fingerprints via a Python microservice. Fetches Yad2 internal JSON API.',
-        recordsCount: listingsBySource.find(r => r.source === 'yad2')?._count.id ?? 0,
+        recordsCount: listingsBySource.find(r => r.source === 'yad2')?.count ?? 0,
         status: 'active',
       },
       {
-        name: 'nadlan.gov.il Sold Transactions',
+        name: 'nadlan.gov.il Sold Tx',
         technique: 'Playwright browser automation',
         description:
           'Playwright headless browser navigates the Israeli government real estate portal to fetch actual transaction prices. Runs weekly.',
@@ -105,10 +112,10 @@ export async function globalDataRoute(app: FastifyInstance) {
         status: 'active',
       },
       {
-        name: 'Market Comparison Engine',
+        name: 'Comparison Engine',
         technique: 'p10/p90 trimmed median + 2-tier benchmark',
         description:
-          'Groups listings by city+dealType+room bucket. Uses sold transactions if ≥5 available (last 24 months), falls back to active-listing median. Classifies each listing.',
+          'Groups listings by city+dealType+room bucket. Uses sold transactions if ≥5 available (last 24 months), falls back to active-listing median.',
         recordsCount: totalComps,
         status: 'active',
       },
@@ -116,24 +123,24 @@ export async function globalDataRoute(app: FastifyInstance) {
         name: 'pg-boss Scheduler',
         technique: 'PostgreSQL-backed job queue',
         description:
-          'Replaces Redis+Bull. Runs 6 cron jobs: daily city scan, mark stale, comparison engine, weekly sold transactions, hourly top-deal digest, per-profile alerts every 30 min.',
+          'Runs 6 cron jobs: daily city scan, mark stale, comparison engine, weekly sold transactions, hourly top-deal digest, per-profile alerts every 30 min.',
         recordsCount: totalListings,
         status: 'active',
       },
       {
-        name: 'Telegram Webhook Bot',
+        name: 'Telegram Bot',
         technique: 'Stateful inline keyboard onboarding',
         description:
-          'Webhook-based bot without grammY. In-memory state machine for multi-step profile creation. Sends per-user deal alerts deduped via Alert table.',
+          'Webhook-based bot. In-memory state machine for multi-step profile creation. Sends per-user deal alerts deduped via Alert table.',
         recordsCount: usersTotal,
         status: 'active',
       },
       {
-        name: 'Madlan GraphQL Scraper',
+        name: 'Madlan Scraper',
         technique: 'GraphQL API reverse engineering',
         description:
           'Second listing source for cross-source validation and increased coverage.',
-        recordsCount: listingsBySource.find(r => r.source === 'madlan')?._count.id ?? 0,
+        recordsCount: listingsBySource.find(r => r.source === 'madlan')?.count ?? 0,
         status: 'planned',
       },
     ]
@@ -148,22 +155,12 @@ export async function globalDataRoute(app: FastifyInstance) {
         total: totalComps,
         soldBacked: soldBackedCount,
         activeListingBacked: activeBackedCount,
-        byBenchmark: compsByBenchmark,
       },
       cityCoverage,
       recentJobs,
-      users: {
-        total: usersTotal,
-        active: usersActive,
-      },
-      profiles: {
-        total: profilesTotal,
-        active: profilesActive,
-      },
-      alerts: {
-        total: alertsTotal,
-        last24h: alertsLast24h,
-      },
+      users: { total: usersTotal, active: usersActive },
+      profiles: { total: profilesTotal, active: profilesActive },
+      alerts: { total: alertsTotal, last24h: alertsLast24h },
       dataSkills,
     }
   })

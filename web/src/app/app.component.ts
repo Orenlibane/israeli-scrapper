@@ -199,7 +199,9 @@ import { SearchComponent } from './search/search.component'
       max-width: 1440px;
       width: 100%;
       margin: 0 auto;
-      padding: 0 28px 48px;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
     }
 
     @keyframes pulse-live {

@@ -1,622 +1,684 @@
-<!-- ── Page nav ─────────────────────────────────────── -->
-<nav class="tab-nav">
-  <button class="tab" [class.active]="mode === 'search'" (click)="switchMode('search')">
-    <svg viewBox="0 0 20 20" fill="none"><circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.6"/><path d="M14 14l3 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-    Search
-  </button>
-  <button class="tab" [class.active]="mode === 'opportunities'" (click)="switchMode('opportunities')">
-    <svg viewBox="0 0 20 20" fill="none"><path d="M10 2l2.39 4.84L18 7.64l-4 3.9.94 5.5L10 14.27l-4.94 2.77.94-5.5L2 7.64l5.61-.8L10 2z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
-    Opportunities
-  </button>
-  <button class="tab" [class.active]="mode === 'dashboard'" (click)="switchMode('dashboard')">
-    <svg viewBox="0 0 20 20" fill="none"><rect x="2" y="2" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="11" y="2" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="2" y="11" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="11" y="11" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/></svg>
-    Dashboard
-  </button>
-  <button class="tab" [class.active]="mode === 'about'" (click)="switchMode('about')">
-    <svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.6"/><path d="M10 9v5M10 7v.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-    About
-  </button>
-  <button class="tab" [class.active]="mode === 'settings'" (click)="switchMode('settings')">
-    <svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="3" stroke="currentColor" stroke-width="1.6"/><path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.22 4.22l1.42 1.42M14.36 14.36l1.42 1.42M4.22 15.78l1.42-1.42M14.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-    Settings
-  </button>
-  <button class="tab" [class.active]="mode === 'global-data'" (click)="switchMode('global-data')">
-    <svg viewBox="0 0 20 20" fill="none"><path d="M3 15V9M7 15V5M11 15V8M15 15V3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-    Global Data
-  </button>
-</nav>
+<div class="app-layout">
 
-<!-- ── Dashboard ───────────────────────────────────── -->
-@if (mode === 'dashboard') {
-  @if (loadingStats) {
-    <div class="dash-loading">
-      <span class="spinner-dark"></span> Loading stats…
-    </div>
-  } @else if (stats) {
-    <div class="dash-page">
+  <!-- ── Sidebar navigation ──────────────────────── -->
+  <aside class="sidebar">
+    <nav class="sidebar-nav">
 
-      <!-- Context banner -->
-      @if (dashboardContextLabel) {
-        <div class="dash-context">
-          <svg viewBox="0 0 16 16" fill="none"><path d="M8 1.5C5.51 1.5 3.5 3.51 3.5 6c0 3.75 4.5 8.5 4.5 8.5s4.5-4.75 4.5-8.5c0-2.49-2.01-4.5-4.5-4.5zM8 7.5a1.5 1.5 0 110-3 1.5 1.5 0 010 3z" stroke="currentColor" stroke-width="1.3"/></svg>
-          Showing stats for <strong>{{ dashboardContextLabel }}</strong>
-          <button class="ctx-clear" (click)="clearStatsFilter()">
-            <svg viewBox="0 0 12 12" fill="none"><path d="M9 3L3 9M3 3l6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-            All cities
-          </button>
-        </div>
-      }
+      <button class="nav-item" [class.active]="mode === 'search'" (click)="switchMode('search')">
+        <span class="nav-icon">
+          <svg viewBox="0 0 20 20" fill="none"><circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.6"/><path d="M14 14l3 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        </span>
+        <span class="nav-label">Search</span>
+      </button>
 
-      <!-- KPIs -->
-      <div class="dash-kpis">
-        <div class="kpi-card">
-          <div class="kpi-icon blue">
-            <svg viewBox="0 0 20 20" fill="none"><path d="M3 9.5L10 4L17 9.5V16a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" stroke="currentColor" stroke-width="1.6"/></svg>
-          </div>
-          <div class="kpi-val">{{ stats.totalListings | number }}</div>
-          <div class="kpi-lbl">Active listings</div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-icon muted">
-            <svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M7 10h6M10 7v6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-          </div>
-          <div class="kpi-val">{{ stats.totalWithComparisons | number }}</div>
-          <div class="kpi-lbl">Compared</div>
-          <div class="kpi-sub">{{ distributionPct(stats.totalWithComparisons) }}% of total</div>
-        </div>
-        <div class="kpi-card fresh">
-          <div class="kpi-icon green">
-            <svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.6"/><path d="M10 6v4l3 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-          </div>
-          <div class="kpi-val">{{ stats.recentListings | number }}</div>
-          <div class="kpi-lbl">New today</div>
-        </div>
-        <div class="kpi-card deal">
-          <div class="kpi-icon amber">
-            <svg viewBox="0 0 20 20" fill="none"><path d="M10 2l2.39 4.84L18 7.64l-4 3.9.94 5.5L10 14.27l-4.94 2.77.94-5.5L2 7.64l5.61-.8L10 2z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
-          </div>
-          <div class="kpi-val">{{ totalDeals | number }}</div>
-          <div class="kpi-lbl">Deals found</div>
-          <div class="kpi-sub">{{ distributionPct(totalDeals) }}% of compared</div>
-        </div>
+      <button class="nav-item" [class.active]="mode === 'opportunities'" (click)="switchMode('opportunities')">
+        <span class="nav-icon">
+          <svg viewBox="0 0 20 20" fill="none"><path d="M10 2l2.39 4.84L18 7.64l-4 3.9.94 5.5L10 14.27l-4.94 2.77.94-5.5L2 7.64l5.61-.8L10 2z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+        </span>
+        <span class="nav-label">Opportunities</span>
+      </button>
+
+      <button class="nav-item" [class.active]="mode === 'dashboard'" (click)="switchMode('dashboard')">
+        <span class="nav-icon">
+          <svg viewBox="0 0 20 20" fill="none"><rect x="2" y="2" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="11" y="2" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="2" y="11" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="11" y="11" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/></svg>
+        </span>
+        <span class="nav-label">Dashboard</span>
+      </button>
+
+      <div class="nav-divider"></div>
+
+      <button class="nav-item" [class.active]="mode === 'global-data'" (click)="switchMode('global-data')">
+        <span class="nav-icon">
+          <svg viewBox="0 0 20 20" fill="none"><path d="M3 15V9M7 15V5M11 15V8M15 15V3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        </span>
+        <span class="nav-label">Global Data</span>
+      </button>
+
+      <button class="nav-item" [class.active]="mode === 'settings'" (click)="switchMode('settings')">
+        <span class="nav-icon">
+          <svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="3" stroke="currentColor" stroke-width="1.6"/><path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.22 4.22l1.42 1.42M14.36 14.36l1.42 1.42M4.22 15.78l1.42-1.42M14.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        </span>
+        <span class="nav-label">Settings</span>
+      </button>
+
+      <button class="nav-item" [class.active]="mode === 'about'" (click)="switchMode('about')">
+        <span class="nav-icon">
+          <svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.6"/><path d="M10 9v5M10 7v.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </span>
+        <span class="nav-label">About</span>
+      </button>
+
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-version">
+        <span class="dot-live"></span>
+        Yad2 · Nadlan Scout
       </div>
+    </div>
+  </aside>
 
-      <!-- Row 1: Donut + Trend -->
-      <div class="dash-grid">
+  <!-- ── Mobile tab nav (hidden on desktop) ──────── -->
+  <nav class="tab-nav">
+    <button class="tab" [class.active]="mode === 'search'" (click)="switchMode('search')">
+      <svg viewBox="0 0 20 20" fill="none"><circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.6"/><path d="M14 14l3 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      Search
+    </button>
+    <button class="tab" [class.active]="mode === 'opportunities'" (click)="switchMode('opportunities')">
+      <svg viewBox="0 0 20 20" fill="none"><path d="M10 2l2.39 4.84L18 7.64l-4 3.9.94 5.5L10 14.27l-4.94 2.77.94-5.5L2 7.64l5.61-.8L10 2z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+      Opps
+    </button>
+    <button class="tab" [class.active]="mode === 'dashboard'" (click)="switchMode('dashboard')">
+      <svg viewBox="0 0 20 20" fill="none"><rect x="2" y="2" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="11" y="2" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="2" y="11" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="11" y="11" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/></svg>
+      Dash
+    </button>
+    <button class="tab" [class.active]="mode === 'global-data'" (click)="switchMode('global-data')">
+      <svg viewBox="0 0 20 20" fill="none"><path d="M3 15V9M7 15V5M11 15V8M15 15V3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      Data
+    </button>
+    <button class="tab" [class.active]="mode === 'settings'" (click)="switchMode('settings')">
+      <svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="3" stroke="currentColor" stroke-width="1.6"/><path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.22 4.22l1.42 1.42M14.36 14.36l1.42 1.42M4.22 15.78l1.42-1.42M14.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      Settings
+    </button>
+  </nav>
 
-        <!-- Market distribution donut -->
-        <div class="dash-card">
-          <div class="dash-card-header">
-            <svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="10" r="4" stroke="currentColor" stroke-width="1.5"/></svg>
-            <h3>Market classification</h3>
+  <!-- ── Main content ─────────────────────────────── -->
+  <div class="main-content">
+
+    <!-- ── Dashboard ───────────────────────────────────── -->
+    @if (mode === 'dashboard') {
+      @if (loadingStats) {
+        <div class="dash-loading">
+          <span class="spinner-dark"></span> Loading stats…
+        </div>
+      } @else if (stats) {
+        <div class="dash-page">
+
+          <!-- Context banner -->
+          @if (dashboardContextLabel) {
+            <div class="dash-context">
+              <svg viewBox="0 0 16 16" fill="none"><path d="M8 1.5C5.51 1.5 3.5 3.51 3.5 6c0 3.75 4.5 8.5 4.5 8.5s4.5-4.75 4.5-8.5c0-2.49-2.01-4.5-4.5-4.5zM8 7.5a1.5 1.5 0 110-3 1.5 1.5 0 010 3z" stroke="currentColor" stroke-width="1.3"/></svg>
+              Showing stats for <strong>{{ dashboardContextLabel }}</strong>
+              <button class="ctx-clear" (click)="clearStatsFilter()">
+                <svg viewBox="0 0 12 12" fill="none"><path d="M9 3L3 9M3 3l6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                All cities
+              </button>
+            </div>
+          }
+
+          <!-- KPIs -->
+          <div class="dash-kpis">
+            <div class="kpi-card">
+              <div class="kpi-icon blue">
+                <svg viewBox="0 0 20 20" fill="none"><path d="M3 9.5L10 4L17 9.5V16a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" stroke="currentColor" stroke-width="1.6"/></svg>
+              </div>
+              <div class="kpi-val">{{ stats.totalListings | number }}</div>
+              <div class="kpi-lbl">Active listings</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-icon muted">
+                <svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M7 10h6M10 7v6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+              </div>
+              <div class="kpi-val">{{ stats.totalWithComparisons | number }}</div>
+              <div class="kpi-lbl">Compared</div>
+              <div class="kpi-sub">{{ distributionPct(stats.totalWithComparisons) }}% of total</div>
+            </div>
+            <div class="kpi-card fresh">
+              <div class="kpi-icon green">
+                <svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.6"/><path d="M10 6v4l3 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+              </div>
+              <div class="kpi-val">{{ stats.recentListings | number }}</div>
+              <div class="kpi-lbl">New today</div>
+            </div>
+            <div class="kpi-card deal">
+              <div class="kpi-icon amber">
+                <svg viewBox="0 0 20 20" fill="none"><path d="M10 2l2.39 4.84L18 7.64l-4 3.9.94 5.5L10 14.27l-4.94 2.77.94-5.5L2 7.64l5.61-.8L10 2z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+              </div>
+              <div class="kpi-val">{{ totalDeals | number }}</div>
+              <div class="kpi-lbl">Deals found</div>
+              <div class="kpi-sub">{{ distributionPct(totalDeals) }}% of compared</div>
+            </div>
           </div>
-          <div class="donut-section">
-            <svg class="donut-svg" viewBox="0 0 100 100">
-              @for (seg of donutSegments; track seg.classification) {
-                <circle
-                  r="42" cx="50" cy="50"
-                  fill="none"
-                  [attr.stroke]="seg.color"
-                  stroke-width="14"
-                  [attr.stroke-dasharray]="seg.dashArray"
-                  [attr.stroke-dashoffset]="seg.dashOffset"
-                  transform="rotate(-90 50 50)"
-                  stroke-linecap="butt"
-                />
+
+          <!-- Row 1: Donut + Trend -->
+          <div class="dash-grid">
+
+            <!-- Market distribution donut -->
+            <div class="dash-card">
+              <div class="dash-card-header">
+                <svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="10" r="4" stroke="currentColor" stroke-width="1.5"/></svg>
+                <h3>Market classification</h3>
+              </div>
+              <div class="donut-section">
+                <svg class="donut-svg" viewBox="0 0 100 100">
+                  @for (seg of donutSegments; track seg.classification) {
+                    <circle
+                      r="42" cx="50" cy="50"
+                      fill="none"
+                      [attr.stroke]="seg.color"
+                      stroke-width="14"
+                      [attr.stroke-dasharray]="seg.dashArray"
+                      [attr.stroke-dashoffset]="seg.dashOffset"
+                      transform="rotate(-90 50 50)"
+                      stroke-linecap="butt"
+                    />
+                  }
+                  <text x="50" y="47" text-anchor="middle" fill="var(--text)" font-size="14" font-weight="700">{{ stats.totalWithComparisons | number }}</text>
+                  <text x="50" y="58" text-anchor="middle" fill="var(--muted)" font-size="6.5">compared</text>
+                </svg>
+                <div class="donut-legend">
+                  @for (seg of donutSegments; track seg.classification) {
+                    <div class="legend-row">
+                      <span class="legend-dot" [style.background]="seg.color"></span>
+                      <span class="legend-lbl">{{ classLabel(seg.classification) }}</span>
+                      <span class="legend-count">{{ seg.count | number }}</span>
+                      <span class="legend-pct">{{ seg.pct }}%</span>
+                    </div>
+                  }
+                </div>
+              </div>
+            </div>
+
+            <!-- New listings trend (14 days) -->
+            <div class="dash-card">
+              <div class="dash-card-header">
+                <svg viewBox="0 0 20 20" fill="none"><path d="M3 15l4-6 4 3 3-5 3 2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <h3>New listings — last 14 days</h3>
+              </div>
+              @if (trendBars.length) {
+                <div class="trend-chart">
+                  <div class="trend-bars">
+                    @for (b of trendBars; track b.label) {
+                      <div class="trend-col" [title]="b.label + ': ' + b.count + ' new listings'">
+                        <span class="trend-count">{{ b.count }}</span>
+                        <div class="trend-bar-wrap">
+                          <div class="trend-bar" [style.height.%]="b.heightPct"></div>
+                        </div>
+                        <span class="trend-label">{{ b.label }}</span>
+                      </div>
+                    }
+                  </div>
+                </div>
+              } @else {
+                <div class="empty-chart">No data for this period</div>
               }
-              <!-- Center label -->
-              <text x="50" y="47" text-anchor="middle" fill="#ddeaf8" font-size="14" font-weight="700">{{ stats.totalWithComparisons | number }}</text>
-              <text x="50" y="58" text-anchor="middle" fill="#5c7c9c" font-size="6.5">compared</text>
-            </svg>
-            <div class="donut-legend">
-              @for (seg of donutSegments; track seg.classification) {
-                <div class="legend-row">
-                  <span class="legend-dot" [style.background]="seg.color"></span>
-                  <span class="legend-lbl">{{ classLabel(seg.classification) }}</span>
-                  <span class="legend-count">{{ seg.count | number }}</span>
-                  <span class="legend-pct">{{ seg.pct }}%</span>
+            </div>
+
+          </div>
+
+          <!-- Row 2: City table -->
+          <div class="dash-card">
+            <div class="dash-card-header">
+              <svg viewBox="0 0 20 20" fill="none"><path d="M10 2l1.8 3.6L16 6.4l-3 2.9.7 4.1-3.7-2-3.7 2 .7-4.1-3-2.9 4.2-.8L10 2z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+              <h3>City overview</h3>
+              <span class="card-sub">top {{ cityTableRows.length }} cities by listing volume</span>
+            </div>
+            <div class="city-overview-table">
+              <div class="cot-head">
+                <span>City</span>
+                <span>Listings</span>
+                <span>Avg ₪/m²</span>
+                <span>Deals</span>
+                <span>Deal %</span>
+                <span class="cot-bar-col">Volume</span>
+              </div>
+              @for (c of cityTableRows; track c.cityRaw) {
+                <div class="cot-row" (click)="params.cityId = params.cityId === findCityId(c.cityRaw) ? 0 : findCityId(c.cityRaw); loadStats()"
+                     [class.cot-selected]="params.cityId === findCityId(c.cityRaw)">
+                  <span class="cot-city">{{ c.cityRaw }}</span>
+                  <span class="cot-num">{{ c.listingCount | number }}</span>
+                  <span class="cot-sqm">{{ c.avgPriceSqm | number }}</span>
+                  <span class="cot-deals" [class.has-deals]="c.dealCount > 0">{{ c.dealCount }}</span>
+                  <span class="cot-pct" [class.has-deals]="c.dealShare > 0">{{ c.dealShare }}%</span>
+                  <div class="cot-bar-col">
+                    <div class="cot-bar-bg">
+                      <div class="cot-bar" [style.width.%]="c.barPct"></div>
+                    </div>
+                  </div>
                 </div>
               }
             </div>
           </div>
-        </div>
 
-        <!-- New listings trend (14 days) -->
-        <div class="dash-card">
-          <div class="dash-card-header">
-            <svg viewBox="0 0 20 20" fill="none"><path d="M3 15l4-6 4 3 3-5 3 2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            <h3>New listings — last 14 days</h3>
-          </div>
-          @if (trendBars.length) {
-            <div class="trend-chart">
-              <div class="trend-bars">
-                @for (b of trendBars; track b.label) {
-                  <div class="trend-col" [title]="b.label + ': ' + b.count + ' new listings'">
-                    <span class="trend-count">{{ b.count }}</span>
-                    <div class="trend-bar-wrap">
-                      <div class="trend-bar" [style.height.%]="b.heightPct"></div>
+          <!-- Row 3: Top deals leaderboard -->
+          @if (stats.topDealCities.length) {
+            <div class="dash-card">
+              <div class="dash-card-header">
+                <svg viewBox="0 0 20 20" fill="none"><path d="M3 17V9M7 17V5M11 17V8M15 17V3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+                <h3>Best deal cities</h3>
+                <span class="card-sub">cities with most below-market listings</span>
+              </div>
+              <div class="deal-leader">
+                @for (c of stats.topDealCities; track c.cityRaw; let i = $index) {
+                  <div class="dl-row">
+                    <span class="dl-rank" [class.top3]="i < 3">{{ i + 1 }}</span>
+                    <span class="dl-city">{{ c.cityRaw }}</span>
+                    <div class="dl-badges">
+                      <span class="dl-badge deals">{{ c.dealCount }} deals</span>
+                      <span class="dl-badge discount">-{{ c.avgDiscount }}% avg</span>
+                      <span class="dl-badge days">{{ c.avgDaysListed }}d avg listed</span>
                     </div>
-                    <span class="trend-label">{{ b.label }}</span>
+                    <div class="dl-bar-bg">
+                      <div class="dl-bar" [style.width.%]="(c.dealCount / stats.topDealCities[0].dealCount) * 100"></div>
+                    </div>
                   </div>
                 }
               </div>
             </div>
-          } @else {
-            <div class="empty-chart">No data for this period</div>
           }
-        </div>
 
-      </div>
-
-      <!-- Row 2: City table -->
-      <div class="dash-card">
-        <div class="dash-card-header">
-          <svg viewBox="0 0 20 20" fill="none"><path d="M10 2l1.8 3.6L16 6.4l-3 2.9.7 4.1-3.7-2-3.7 2 .7-4.1-3-2.9 4.2-.8L10 2z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
-          <h3>City overview</h3>
-          <span class="card-sub">top {{ cityTableRows.length }} cities by listing volume</span>
         </div>
-        <div class="city-overview-table">
-          <div class="cot-head">
-            <span>City</span>
-            <span>Listings</span>
-            <span>Avg ₪/m²</span>
-            <span>Deals</span>
-            <span>Deal %</span>
-            <span class="cot-bar-col">Volume</span>
+      } @else {
+        <div class="dash-empty">
+          <svg viewBox="0 0 48 48" fill="none"><rect x="4" y="14" width="40" height="30" rx="3" stroke="var(--border-hi)" stroke-width="2"/><path d="M14 14V10a2 2 0 012-2h16a2 2 0 012 2v4M20 24h8M20 31h5" stroke="var(--muted)" stroke-width="2" stroke-linecap="round"/></svg>
+          <p>No data yet — run a scan first to populate the dashboard.</p>
+        </div>
+      }
+    }
+
+    <!-- ── About page ──────────────────────────────────── -->
+    @if (mode === 'about') {
+      <div class="about-page">
+        <div class="about-hero">
+          <h1>Nadlan Scout</h1>
+          <p class="about-tagline">Real-time Yad2 market intelligence — find undervalued apartments before everyone else.</p>
+        </div>
+        <div class="about-grid">
+          <div class="about-card">
+            <div class="about-card-icon">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <h3>Where does the data come from?</h3>
+            <p>All listings are scraped directly from <strong>Yad2</strong> using their pagination API — not screenshots or third-party feeds. 18 major cities are scanned daily at 06:00 AM Israel time.</p>
+            <ul>
+              <li>Up to 40 pages per city, per deal type</li>
+              <li>Private owner + agency listings</li>
+              <li>Price changes tracked over time</li>
+              <li>Listings marked inactive after 48h off-market</li>
+            </ul>
           </div>
-          @for (c of cityTableRows; track c.cityRaw) {
-            <div class="cot-row" (click)="params.cityId = params.cityId === findCityId(c.cityRaw) ? 0 : findCityId(c.cityRaw); loadStats()"
-                 [class.cot-selected]="params.cityId === findCityId(c.cityRaw)">
-              <span class="cot-city">{{ c.cityRaw }}</span>
-              <span class="cot-num">{{ c.listingCount | number }}</span>
-              <span class="cot-sqm">{{ c.avgPriceSqm | number }}</span>
-              <span class="cot-deals" [class.has-deals]="c.dealCount > 0">{{ c.dealCount }}</span>
-              <span class="cot-pct" [class.has-deals]="c.dealShare > 0">{{ c.dealShare }}%</span>
-              <div class="cot-bar-col">
-                <div class="cot-bar-bg">
-                  <div class="cot-bar" [style.width.%]="c.barPct"></div>
-                </div>
+          <div class="about-card">
+            <div class="about-card-icon amber">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M9 19V6l12-3v13M9 19c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm12 0c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <h3>How does the comparison engine work?</h3>
+            <p>After each scan, the engine groups listings by <strong>city + deal type + room count</strong> and computes a market benchmark from sold transactions (nadlan.gov.il) when available:</p>
+            <ol>
+              <li><strong>Peer grouping</strong> — e.g. all 3-room sale apartments in Ashdod</li>
+              <li><strong>Outlier trimming</strong> — removes top and bottom 10% by ₪/m²</li>
+              <li><strong>Median benchmark</strong> — sold prices preferred; active listing median as fallback</li>
+              <li><strong>Classification</strong> — each listing is scored vs. the benchmark</li>
+            </ol>
+            <div class="class-table">
+              <div class="class-row"><span class="badge mkt green">Deal</span><span>More than 15% below median</span></div>
+              <div class="class-row"><span class="badge mkt blue">Below</span><span>5–15% below median</span></div>
+              <div class="class-row"><span class="badge mkt gray">Fair</span><span>Within ±5% of median</span></div>
+              <div class="class-row"><span class="badge mkt red">High</span><span>More than 5% above median</span></div>
+            </div>
+          </div>
+          <div class="about-card">
+            <div class="about-card-icon green">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.95 10.5 19.79 19.79 0 01.88 1.87 2 2 0 012.86 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L7.09 7.91a16 16 0 006 6l.99-.99a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 15.2v1.72z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <h3>Telegram bot</h3>
+            <p><strong>Automatic alerts:</strong> new listings and price drops sent instantly. Hourly digest of top deals.</p>
+            <div class="cmd-list">
+              <code>/search ashdod 3 sale</code>
+              <code>/top tel aviv rent</code>
+              <code>/stats</code>
+              <code>/cities</code>
+              <code>/help</code>
+            </div>
+          </div>
+          <div class="about-card">
+            <div class="about-card-icon purple">
+              <svg viewBox="0 0 24 24" fill="none"><rect x="2" y="3" width="20" height="14" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M8 21h8M12 17v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            </div>
+            <h3>How to use the app</h3>
+            <ol>
+              <li><strong>Search</strong> — pick a city, set filters, click Scan Yad2 for fresh data or Load Results from DB.</li>
+              <li><strong>Opportunities</strong> — click Run Comparison Engine, browse deals sorted by biggest discount.</li>
+              <li><strong>Share</strong> — every listing has a WhatsApp share button. Send deals directly to a group or contact.</li>
+              <li><strong>City chips</strong> — switch markets instantly without re-opening the dropdown.</li>
+            </ol>
+          </div>
+        </div>
+        <div class="about-footer">Data refreshed daily at 06:00 AM Israel time &nbsp;·&nbsp; Comparison engine runs at 07:30 AM &nbsp;·&nbsp; Source: Yad2.co.il</div>
+      </div>
+    }
+
+    <!-- ── City rail (Search + Opportunities) ─────────── -->
+    @if (mode !== 'about' && mode !== 'dashboard' && mode !== 'settings' && mode !== 'global-data') {
+      <div class="city-rail">
+        <button class="city-chip" [class.active]="params.cityId === 0" (click)="params.cityId = 0; listings = []; total = 0">All</button>
+        @for (c of quickCities; track c.id) {
+          <button class="city-chip" [class.active]="params.cityId === c.id" (click)="selectQuickCity(c.id)">{{ c.label }}</button>
+        }
+      </div>
+    }
+
+    <!-- ── Search mode ─────────────────────────────────── -->
+    @if (mode === 'search') {
+      <div class="filters-card">
+
+        <!-- Section: Location & Type -->
+        <div class="filter-section">
+          <div class="section-header">
+            <svg viewBox="0 0 16 16" fill="none"><path d="M8 1.5C5.51 1.5 3.5 3.51 3.5 6c0 3.75 4.5 8.5 4.5 8.5s4.5-4.75 4.5-8.5c0-2.49-2.01-4.5-4.5-4.5zM8 7.5a1.5 1.5 0 110-3 1.5 1.5 0 010 3z" stroke="currentColor" stroke-width="1.4"/></svg>
+            <span>Location &amp; Type</span>
+          </div>
+          <div class="row-primary">
+            <div class="field field--city">
+              <label>City</label>
+              <select [(ngModel)]="params.cityId" (change)="onCityChange()">
+                <option [value]="0" disabled>Select a city…</option>
+                @for (c of cities; track c.id) {
+                  <option [value]="c.id">{{ c.nameHe }} · {{ c.name }}</option>
+                }
+              </select>
+            </div>
+            <div class="field field--neighborhood">
+              <label>Neighborhood</label>
+              <select [(ngModel)]="params.neighborhoodId" [disabled]="!neighborhoods.length">
+                <option [value]="undefined">All neighborhoods</option>
+                @for (n of neighborhoods; track n.id) {
+                  <option [value]="n.id">{{ n.nameHe }}</option>
+                }
+              </select>
+            </div>
+            <div class="deal-toggle">
+              <button class="toggle-btn" [class.active]="params.dealType === 'sale'" (click)="params.dealType = 'sale'">For Sale</button>
+              <button class="toggle-btn" [class.active]="params.dealType === 'rent'" (click)="params.dealType = 'rent'">For Rent</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="filter-divider"></div>
+
+        <!-- Section: Attributes -->
+        <div class="filter-section">
+          <div class="section-header">
+            <svg viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.4"/><rect x="9" y="2" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.4"/><rect x="2" y="9" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.4"/><rect x="9" y="9" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.4"/></svg>
+            <span>Attributes</span>
+          </div>
+          <div class="filter-row wrap">
+            <div class="filter-group">
+              <span class="filter-label">Rooms</span>
+              <div class="room-chips">
+                @for (r of roomOptions; track r.val) {
+                  <button class="chip" [class.selected]="isRoomSelected(r.val)" (click)="toggleRoom(r.val)">{{ r.label }}</button>
+                }
               </div>
+            </div>
+
+            <div class="filter-group">
+              <span class="filter-label">Property type</span>
+              <div class="room-chips">
+                @for (pt of propertyTypes; track pt.key) {
+                  <button class="chip" [class.selected]="selectedPropertyTypes.has(pt.key)" (click)="togglePropertyType(pt.key)">{{ pt.label }}</button>
+                }
+              </div>
+            </div>
+
+            <div class="filter-group">
+              <span class="filter-label">Poster</span>
+              <div class="deal-toggle">
+                <button class="toggle-btn" [class.active]="!params.posterType" (click)="setOwnerOnly(false)">All</button>
+                <button class="toggle-btn" [class.active]="params.posterType === 'owner'" (click)="setOwnerOnly(true)">Owner only</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="filter-divider"></div>
+
+        <!-- Section: Price & Size -->
+        <div class="filter-section">
+          <div class="section-header">
+            <svg viewBox="0 0 16 16" fill="none"><path d="M8 1v14M11 4H6.5a2.5 2.5 0 000 5h3a2.5 2.5 0 010 5H5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+            <span>Price &amp; Size</span>
+          </div>
+          <div class="filter-row wrap">
+            <div class="filter-group col">
+              <span class="filter-label">Price (₪)</span>
+              <div class="range-inputs">
+                <input type="number" [(ngModel)]="params.minPrice" placeholder="Min" />
+                <span class="range-sep">–</span>
+                <input type="number" [(ngModel)]="params.maxPrice" placeholder="Max" />
+              </div>
+              <div class="preset-row">
+                @for (p of (params.dealType === 'rent'
+                  ? [{l:'2K',v:2000},{l:'3K',v:3000},{l:'5K',v:5000},{l:'8K',v:8000},{l:'12K',v:12000}]
+                  : [{l:'1M',v:1000000},{l:'1.5M',v:1500000},{l:'2M',v:2000000},{l:'3M',v:3000000},{l:'5M',v:5000000}]
+                ); track p.v) {
+                  <button class="preset-btn"
+                    [class.selected]="params.maxPrice === p.v"
+                    (click)="params.maxPrice = params.maxPrice === p.v ? undefined : p.v">
+                    ≤{{ p.l }}
+                  </button>
+                }
+              </div>
+            </div>
+
+            <div class="filter-group col">
+              <span class="filter-label">₪/m²</span>
+              <div class="range-inputs">
+                <input type="number" [(ngModel)]="params.minPricePerSqm" placeholder="Min" />
+                <span class="range-sep">–</span>
+                <input type="number" [(ngModel)]="params.maxPricePerSqm" placeholder="Max" />
+              </div>
+              <div class="preset-row">
+                @for (p of [{l:'8K',v:8000},{l:'12K',v:12000},{l:'16K',v:16000},{l:'20K',v:20000},{l:'25K',v:25000}]; track p.v) {
+                  <button class="preset-btn"
+                    [class.selected]="params.maxPricePerSqm === p.v"
+                    (click)="params.maxPricePerSqm = params.maxPricePerSqm === p.v ? undefined : p.v">
+                    ≤{{ p.l }}
+                  </button>
+                }
+              </div>
+            </div>
+
+            <div class="filter-group col">
+              <span class="filter-label">Size (m²)</span>
+              <div class="range-inputs">
+                <input type="number" [(ngModel)]="params.minSqm" placeholder="Min" />
+                <span class="range-sep">–</span>
+                <input type="number" [(ngModel)]="params.maxSqm" placeholder="Max" />
+              </div>
+              <div class="preset-row">
+                @for (p of [{l:'40',v:40},{l:'60',v:60},{l:'80',v:80},{l:'100',v:100},{l:'120',v:120}]; track p.v) {
+                  <button class="preset-btn"
+                    [class.selected]="params.minSqm === p.v"
+                    (click)="params.minSqm = params.minSqm === p.v ? undefined : p.v">
+                    {{ p.l }}+
+                  </button>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="filter-divider"></div>
+
+        <!-- Section: Floor & Freshness -->
+        <div class="filter-section">
+          <div class="section-header">
+            <svg viewBox="0 0 16 16" fill="none"><path d="M2 13h12M4 10h8M6 7h4M8 4v9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+            <span>Floor &amp; Freshness</span>
+          </div>
+          <div class="filter-row wrap">
+            <div class="filter-group col">
+              <span class="filter-label">Floor</span>
+              <div class="range-inputs narrow">
+                <input type="number" [(ngModel)]="params.minFloor" placeholder="Min" />
+                <span class="range-sep">–</span>
+                <input type="number" [(ngModel)]="params.maxFloor" placeholder="Max" />
+              </div>
+              <div class="preset-row">
+                @for (p of [{l:'Ground',min:0,max:0},{l:'Low (1–3)',min:1,max:3},{l:'Mid (4–8)',min:4,max:8},{l:'High (9+)',min:9,max:99}]; track p.l) {
+                  <button class="preset-btn"
+                    [class.selected]="params.minFloor === p.min && params.maxFloor === (p.max === 99 ? undefined : p.max)"
+                    (click)="params.minFloor = params.minFloor === p.min ? undefined : p.min; params.maxFloor = params.minFloor !== undefined && p.max !== 99 ? p.max : undefined">
+                    {{ p.l }}
+                  </button>
+                }
+              </div>
+            </div>
+
+            <div class="filter-group">
+              <span class="filter-label">Listed within</span>
+              <div class="room-chips">
+                @for (f of freshnessOptions; track f.val) {
+                  <button class="chip" [class.selected]="params.maxDays === f.val" (click)="setFreshness(f.val)">{{ f.label }}</button>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="filter-divider"></div>
+
+        <!-- Actions -->
+        <div class="row-actions">
+          <button class="btn-scan" (click)="scan()" [disabled]="scanning || !params.cityId">
+            @if (scanning) {
+              <span class="spinner"></span> Scanning…
+            } @else {
+              <svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M16.5 16.5L21 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+              Scan Yad2
+            }
+          </button>
+          <button class="btn-load" (click)="loadListings()" [disabled]="!params.cityId">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            Load Results
+          </button>
+          @if (hasActiveFilters) {
+            <button class="btn-clear" (click)="clearAll()">
+              <svg viewBox="0 0 20 20" fill="none"><path d="M15 5L5 15M5 5l10 10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+              Clear filters
+            </button>
+          }
+          @if (scanStatus) {
+            <div class="status-pill" [class.error]="scanStatus.startsWith('Failed')" [class.done]="scanStatus.startsWith('Done')">
+              @if (scanning) { <span class="dot pulse"></span> }
+              @if (!scanning && scanStatus.startsWith('Done')) { <span class="dot done-dot"></span> }
+              {{ scanStatus }}
             </div>
           }
         </div>
       </div>
 
-      <!-- Row 3: Top deals leaderboard -->
-      @if (stats.topDealCities.length) {
-        <div class="dash-card">
-          <div class="dash-card-header">
-            <svg viewBox="0 0 20 20" fill="none"><path d="M3 17V9M7 17V5M11 17V8M15 17V3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-            <h3>Best deal cities</h3>
-            <span class="card-sub">cities with most below-market listings</span>
-          </div>
-          <div class="deal-leader">
-            @for (c of stats.topDealCities; track c.cityRaw; let i = $index) {
-              <div class="dl-row">
-                <span class="dl-rank" [class.top3]="i < 3">{{ i + 1 }}</span>
-                <span class="dl-city">{{ c.cityRaw }}</span>
-                <div class="dl-badges">
-                  <span class="dl-badge deals">{{ c.dealCount }} deals</span>
-                  <span class="dl-badge discount">-{{ c.avgDiscount }}% avg</span>
-                  <span class="dl-badge days">{{ c.avgDaysListed }}d avg listed</span>
-                </div>
-                <div class="dl-bar-bg">
-                  <div class="dl-bar" [style.width.%]="(c.dealCount / stats.topDealCities[0].dealCount) * 100"></div>
-                </div>
-              </div>
-            }
-          </div>
+      @if (listings.length > 0) {
+        <app-results [listings]="listings" [total]="total" [page]="page" [pageSize]="50" [opportunitiesMode]="false" (pageChange)="changePage($event)" />
+      }
+      @if (!listings.length && scanStatus.startsWith('Done')) {
+        <div class="empty-state">
+          <svg viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="28" stroke="var(--border-hi)" stroke-width="2"/><path d="M22 32h20M22 24h20M22 40h12" stroke="var(--muted)" stroke-width="2" stroke-linecap="round"/></svg>
+          <p>No listings found for these filters.<br>Try broadening your search.</p>
         </div>
       }
-
-    </div>
-  } @else {
-    <div class="dash-empty">
-      <svg viewBox="0 0 48 48" fill="none"><rect x="4" y="14" width="40" height="30" rx="3" stroke="var(--border-hi)" stroke-width="2"/><path d="M14 14V10a2 2 0 012-2h16a2 2 0 012 2v4M20 24h8M20 31h5" stroke="var(--muted)" stroke-width="2" stroke-linecap="round"/></svg>
-      <p>No data yet — run a scan first to populate the dashboard.</p>
-    </div>
-  }
-}
-
-<!-- ── About page ──────────────────────────────────── -->
-@if (mode === 'about') {
-  <div class="about-page">
-    <div class="about-hero">
-      <h1>Nadlan Scout</h1>
-      <p class="about-tagline">Real-time Yad2 market intelligence — find undervalued apartments before everyone else.</p>
-    </div>
-    <div class="about-grid">
-      <div class="about-card">
-        <div class="about-card-icon">
-          <svg viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </div>
-        <h3>Where does the data come from?</h3>
-        <p>All listings are scraped directly from <strong>Yad2</strong> using their pagination API — not screenshots or third-party feeds. 18 major cities are scanned daily at 06:00 AM Israel time.</p>
-        <ul>
-          <li>Up to 40 pages per city, per deal type</li>
-          <li>Private owner + agency listings</li>
-          <li>Price changes tracked over time</li>
-          <li>Listings marked inactive after 48h off-market</li>
-        </ul>
-      </div>
-      <div class="about-card">
-        <div class="about-card-icon amber">
-          <svg viewBox="0 0 24 24" fill="none"><path d="M9 19V6l12-3v13M9 19c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm12 0c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </div>
-        <h3>How does the comparison engine work?</h3>
-        <p>After each scan, the engine groups listings by <strong>city + deal type + room count</strong> and computes a market benchmark from sold transactions (nadlan.gov.il) when available:</p>
-        <ol>
-          <li><strong>Peer grouping</strong> — e.g. all 3-room sale apartments in Ashdod</li>
-          <li><strong>Outlier trimming</strong> — removes top and bottom 10% by ₪/m²</li>
-          <li><strong>Median benchmark</strong> — sold prices preferred; active listing median as fallback</li>
-          <li><strong>Classification</strong> — each listing is scored vs. the benchmark</li>
-        </ol>
-        <div class="class-table">
-          <div class="class-row"><span class="badge mkt green">Deal</span><span>More than 15% below median</span></div>
-          <div class="class-row"><span class="badge mkt blue">Below</span><span>5–15% below median</span></div>
-          <div class="class-row"><span class="badge mkt gray">Fair</span><span>Within ±5% of median</span></div>
-          <div class="class-row"><span class="badge mkt red">High</span><span>More than 5% above median</span></div>
-        </div>
-      </div>
-      <div class="about-card">
-        <div class="about-card-icon green">
-          <svg viewBox="0 0 24 24" fill="none"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.95 10.5 19.79 19.79 0 01.88 1.87 2 2 0 012.86 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L7.09 7.91a16 16 0 006 6l.99-.99a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 15.2v1.72z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </div>
-        <h3>Telegram bot</h3>
-        <p><strong>Automatic alerts:</strong> new listings and price drops sent instantly. Hourly digest of top deals.</p>
-        <div class="cmd-list">
-          <code>/search ashdod 3 sale</code>
-          <code>/top tel aviv rent</code>
-          <code>/stats</code>
-          <code>/cities</code>
-          <code>/help</code>
-        </div>
-      </div>
-      <div class="about-card">
-        <div class="about-card-icon purple">
-          <svg viewBox="0 0 24 24" fill="none"><rect x="2" y="3" width="20" height="14" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M8 21h8M12 17v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-        </div>
-        <h3>How to use the app</h3>
-        <ol>
-          <li><strong>Search</strong> — pick a city, set filters, click Scan Yad2 for fresh data or Load Results from DB.</li>
-          <li><strong>Opportunities</strong> — click Run Comparison Engine, browse deals sorted by biggest discount.</li>
-          <li><strong>Share</strong> — every listing has a WhatsApp share button. Send deals directly to a group or contact.</li>
-          <li><strong>City chips</strong> — switch markets instantly without re-opening the dropdown.</li>
-        </ol>
-      </div>
-    </div>
-    <div class="about-footer">Data refreshed daily at 06:00 AM Israel time &nbsp;·&nbsp; Comparison engine runs at 07:30 AM &nbsp;·&nbsp; Source: Yad2.co.il</div>
-  </div>
-}
-
-<!-- ── City rail (Search + Opportunities) ─────────── -->
-@if (mode !== 'about' && mode !== 'dashboard' && mode !== 'settings' && mode !== 'global-data') {
-  <div class="city-rail">
-    <button class="city-chip" [class.active]="params.cityId === 0" (click)="params.cityId = 0; listings = []; total = 0">All</button>
-    @for (c of quickCities; track c.id) {
-      <button class="city-chip" [class.active]="params.cityId === c.id" (click)="selectQuickCity(c.id)">{{ c.label }}</button>
     }
-  </div>
-}
 
-<!-- ── Search mode ─────────────────────────────────── -->
-@if (mode === 'search') {
-  <div class="filters-card">
-
-    <!-- Section: Location & Type -->
-    <div class="filter-section">
-      <div class="section-header">
-        <svg viewBox="0 0 16 16" fill="none"><path d="M8 1.5C5.51 1.5 3.5 3.51 3.5 6c0 3.75 4.5 8.5 4.5 8.5s4.5-4.75 4.5-8.5c0-2.49-2.01-4.5-4.5-4.5zM8 7.5a1.5 1.5 0 110-3 1.5 1.5 0 010 3z" stroke="currentColor" stroke-width="1.4"/></svg>
-        <span>Location &amp; Type</span>
-      </div>
-      <div class="row-primary">
-        <div class="field field--city">
-          <label>City</label>
-          <select [(ngModel)]="params.cityId" (change)="onCityChange()">
-            <option [value]="0" disabled>Select a city…</option>
-            @for (c of cities; track c.id) {
-              <option [value]="c.id">{{ c.nameHe }} · {{ c.name }}</option>
+    <!-- ── Opportunities mode ──────────────────────────── -->
+    @if (mode === 'opportunities') {
+      <div class="filters-card">
+        <div class="filter-section">
+          <div class="section-header">
+            <svg viewBox="0 0 16 16" fill="none"><path d="M8 1l1.91 3.87L14 5.72l-3 2.93.71 4.13L8 10.77l-3.71 2.01.71-4.13-3-2.93 4.09-.85L8 1z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
+            <span>Deal finder</span>
+          </div>
+          <div class="filter-row wrap">
+            <div class="deal-toggle">
+              <button class="toggle-btn" [class.active]="params.dealType === 'sale'" (click)="params.dealType = 'sale'">For Sale</button>
+              <button class="toggle-btn" [class.active]="params.dealType === 'rent'" (click)="params.dealType = 'rent'">For Rent</button>
+            </div>
+            <div class="filter-group">
+              <span class="filter-label">Rooms</span>
+              <div class="room-chips">
+                @for (r of roomOptions; track r.val) {
+                  <button class="chip" [class.selected]="isRoomSelected(r.val)" (click)="toggleRoom(r.val)">{{ r.label }}</button>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="filter-divider"></div>
+        <div class="row-actions">
+          <button class="btn-compute" (click)="computeComparisons()" [disabled]="computingComparisons">
+            @if (computingComparisons) {
+              <span class="spinner-dark"></span> Computing…
+            } @else {
+              <svg viewBox="0 0 24 24" fill="none"><path d="M9 19V6l12-3v13M9 19c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm12 0c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Run Comparison Engine
             }
-          </select>
-        </div>
-        <div class="field field--neighborhood">
-          <label>Neighborhood</label>
-          <select [(ngModel)]="params.neighborhoodId" [disabled]="!neighborhoods.length">
-            <option [value]="undefined">All neighborhoods</option>
-            @for (n of neighborhoods; track n.id) {
-              <option [value]="n.id">{{ n.nameHe }}</option>
-            }
-          </select>
-        </div>
-        <div class="deal-toggle">
-          <button class="toggle-btn" [class.active]="params.dealType === 'sale'" (click)="params.dealType = 'sale'">For Sale</button>
-          <button class="toggle-btn" [class.active]="params.dealType === 'rent'" (click)="params.dealType = 'rent'">For Rent</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="filter-divider"></div>
-
-    <!-- Section: Attributes -->
-    <div class="filter-section">
-      <div class="section-header">
-        <svg viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.4"/><rect x="9" y="2" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.4"/><rect x="2" y="9" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.4"/><rect x="9" y="9" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.4"/></svg>
-        <span>Attributes</span>
-      </div>
-      <div class="filter-row wrap">
-        <div class="filter-group">
-          <span class="filter-label">Rooms</span>
-          <div class="room-chips">
-            @for (r of roomOptions; track r.val) {
-              <button class="chip" [class.selected]="isRoomSelected(r.val)" (click)="toggleRoom(r.val)">{{ r.label }}</button>
-            }
-          </div>
-        </div>
-
-        <div class="filter-group">
-          <span class="filter-label">Property type</span>
-          <div class="room-chips">
-            @for (pt of propertyTypes; track pt.key) {
-              <button class="chip" [class.selected]="selectedPropertyTypes.has(pt.key)" (click)="togglePropertyType(pt.key)">{{ pt.label }}</button>
-            }
-          </div>
-        </div>
-
-        <div class="filter-group">
-          <span class="filter-label">Poster</span>
-          <div class="deal-toggle">
-            <button class="toggle-btn" [class.active]="!params.posterType" (click)="setOwnerOnly(false)">All</button>
-            <button class="toggle-btn" [class.active]="params.posterType === 'owner'" (click)="setOwnerOnly(true)">Owner only</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="filter-divider"></div>
-
-    <!-- Section: Price & Size -->
-    <div class="filter-section">
-      <div class="section-header">
-        <svg viewBox="0 0 16 16" fill="none"><path d="M8 1v14M11 4H6.5a2.5 2.5 0 000 5h3a2.5 2.5 0 010 5H5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-        <span>Price &amp; Size</span>
-      </div>
-      <div class="filter-row wrap">
-        <div class="filter-group col">
-          <span class="filter-label">Price (₪)</span>
-          <div class="range-inputs">
-            <input type="number" [(ngModel)]="params.minPrice" placeholder="Min" />
-            <span class="range-sep">–</span>
-            <input type="number" [(ngModel)]="params.maxPrice" placeholder="Max" />
-          </div>
-          <div class="preset-row">
-            @for (p of (params.dealType === 'rent'
-              ? [{l:'2K',v:2000},{l:'3K',v:3000},{l:'5K',v:5000},{l:'8K',v:8000},{l:'12K',v:12000}]
-              : [{l:'1M',v:1000000},{l:'1.5M',v:1500000},{l:'2M',v:2000000},{l:'3M',v:3000000},{l:'5M',v:5000000}]
-            ); track p.v) {
-              <button class="preset-btn"
-                [class.selected]="params.maxPrice === p.v"
-                (click)="params.maxPrice = params.maxPrice === p.v ? undefined : p.v">
-                ≤{{ p.l }}
-              </button>
-            }
-          </div>
-        </div>
-
-        <div class="filter-group col">
-          <span class="filter-label">₪/m²</span>
-          <div class="range-inputs">
-            <input type="number" [(ngModel)]="params.minPricePerSqm" placeholder="Min" />
-            <span class="range-sep">–</span>
-            <input type="number" [(ngModel)]="params.maxPricePerSqm" placeholder="Max" />
-          </div>
-          <div class="preset-row">
-            @for (p of [{l:'8K',v:8000},{l:'12K',v:12000},{l:'16K',v:16000},{l:'20K',v:20000},{l:'25K',v:25000}]; track p.v) {
-              <button class="preset-btn"
-                [class.selected]="params.maxPricePerSqm === p.v"
-                (click)="params.maxPricePerSqm = params.maxPricePerSqm === p.v ? undefined : p.v">
-                ≤{{ p.l }}
-              </button>
-            }
-          </div>
-        </div>
-
-        <div class="filter-group col">
-          <span class="filter-label">Size (m²)</span>
-          <div class="range-inputs">
-            <input type="number" [(ngModel)]="params.minSqm" placeholder="Min" />
-            <span class="range-sep">–</span>
-            <input type="number" [(ngModel)]="params.maxSqm" placeholder="Max" />
-          </div>
-          <div class="preset-row">
-            @for (p of [{l:'40',v:40},{l:'60',v:60},{l:'80',v:80},{l:'100',v:100},{l:'120',v:120}]; track p.v) {
-              <button class="preset-btn"
-                [class.selected]="params.minSqm === p.v"
-                (click)="params.minSqm = params.minSqm === p.v ? undefined : p.v">
-                {{ p.l }}+
-              </button>
-            }
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="filter-divider"></div>
-
-    <!-- Section: Floor & Freshness -->
-    <div class="filter-section">
-      <div class="section-header">
-        <svg viewBox="0 0 16 16" fill="none"><path d="M2 13h12M4 10h8M6 7h4M8 4v9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-        <span>Floor &amp; Freshness</span>
-      </div>
-      <div class="filter-row wrap">
-        <div class="filter-group col">
-          <span class="filter-label">Floor</span>
-          <div class="range-inputs narrow">
-            <input type="number" [(ngModel)]="params.minFloor" placeholder="Min" />
-            <span class="range-sep">–</span>
-            <input type="number" [(ngModel)]="params.maxFloor" placeholder="Max" />
-          </div>
-          <div class="preset-row">
-            @for (p of [{l:'Ground',min:0,max:0},{l:'Low (1–3)',min:1,max:3},{l:'Mid (4–8)',min:4,max:8},{l:'High (9+)',min:9,max:99}]; track p.l) {
-              <button class="preset-btn"
-                [class.selected]="params.minFloor === p.min && params.maxFloor === (p.max === 99 ? undefined : p.max)"
-                (click)="params.minFloor = params.minFloor === p.min ? undefined : p.min; params.maxFloor = params.minFloor !== undefined && p.max !== 99 ? p.max : undefined">
-                {{ p.l }}
-              </button>
-            }
-          </div>
-        </div>
-
-        <div class="filter-group">
-          <span class="filter-label">Listed within</span>
-          <div class="room-chips">
-            @for (f of freshnessOptions; track f.val) {
-              <button class="chip" [class.selected]="params.maxDays === f.val" (click)="setFreshness(f.val)">{{ f.label }}</button>
-            }
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="filter-divider"></div>
-
-    <!-- Actions -->
-    <div class="row-actions">
-      <button class="btn-scan" (click)="scan()" [disabled]="scanning || !params.cityId">
-        @if (scanning) {
-          <span class="spinner"></span> Scanning…
-        } @else {
-          <svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M16.5 16.5L21 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-          Scan Yad2
-        }
-      </button>
-      <button class="btn-load" (click)="loadListings()" [disabled]="!params.cityId">
-        <svg viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-        Load Results
-      </button>
-      @if (hasActiveFilters) {
-        <button class="btn-clear" (click)="clearAll()">
-          <svg viewBox="0 0 20 20" fill="none"><path d="M15 5L5 15M5 5l10 10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-          Clear filters
-        </button>
-      }
-      @if (scanStatus) {
-        <div class="status-pill" [class.error]="scanStatus.startsWith('Failed')" [class.done]="scanStatus.startsWith('Done')">
-          @if (scanning) { <span class="dot pulse"></span> }
-          @if (!scanning && scanStatus.startsWith('Done')) { <span class="dot done-dot"></span> }
-          {{ scanStatus }}
-        </div>
-      }
-    </div>
-  </div>
-
-  @if (listings.length > 0) {
-    <app-results [listings]="listings" [total]="total" [page]="page" [pageSize]="50" [opportunitiesMode]="false" (pageChange)="changePage($event)" />
-  }
-  @if (!listings.length && scanStatus.startsWith('Done')) {
-    <div class="empty-state">
-      <svg viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="28" stroke="var(--border-hi)" stroke-width="2"/><path d="M22 32h20M22 24h20M22 40h12" stroke="var(--muted)" stroke-width="2" stroke-linecap="round"/></svg>
-      <p>No listings found for these filters.<br>Try broadening your search.</p>
-    </div>
-  }
-}
-
-<!-- ── Opportunities mode ──────────────────────────── -->
-@if (mode === 'opportunities') {
-  <div class="filters-card">
-    <div class="filter-section">
-      <div class="section-header">
-        <svg viewBox="0 0 16 16" fill="none"><path d="M8 1l1.91 3.87L14 5.72l-3 2.93.71 4.13L8 10.77l-3.71 2.01.71-4.13-3-2.93 4.09-.85L8 1z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
-        <span>Deal finder</span>
-      </div>
-      <div class="filter-row wrap">
-        <div class="deal-toggle">
-          <button class="toggle-btn" [class.active]="params.dealType === 'sale'" (click)="params.dealType = 'sale'">For Sale</button>
-          <button class="toggle-btn" [class.active]="params.dealType === 'rent'" (click)="params.dealType = 'rent'">For Rent</button>
-        </div>
-        <div class="filter-group">
-          <span class="filter-label">Rooms</span>
-          <div class="room-chips">
-            @for (r of roomOptions; track r.val) {
-              <button class="chip" [class.selected]="isRoomSelected(r.val)" (click)="toggleRoom(r.val)">{{ r.label }}</button>
-            }
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="filter-divider"></div>
-    <div class="row-actions">
-      <button class="btn-compute" (click)="computeComparisons()" [disabled]="computingComparisons">
-        @if (computingComparisons) {
-          <span class="spinner-dark"></span> Computing…
-        } @else {
-          <svg viewBox="0 0 24 24" fill="none"><path d="M9 19V6l12-3v13M9 19c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm12 0c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          Run Comparison Engine
-        }
-      </button>
-      <button class="btn-load" (click)="loadDeals()">
-        <svg viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-        Load Deals
-      </button>
-      @if (comparisonStatus) {
-        <div class="status-pill" [class.error]="comparisonStatus === 'Failed'" [class.done]="comparisonStatus.startsWith('Done')">
-          @if (computingComparisons) { <span class="dot pulse"></span> }
-          @if (!computingComparisons && comparisonStatus.startsWith('Done')) { <span class="dot done-dot"></span> }
-          {{ comparisonStatus }}
-        </div>
-      }
-
-      <div class="tg-test">
-        <button class="btn-tg" (click)="sendTelegram()" [disabled]="sendingTelegram"
-                [title]="telegramConfigured === false ? 'Telegram not configured — set TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID in Railway' : 'Send top deals digest to Telegram now'">
-          @if (sendingTelegram) {
-            <span class="spinner-tg"></span>
-          } @else {
-            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+          </button>
+          <button class="btn-load" (click)="loadDeals()">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            Load Deals
+          </button>
+          @if (comparisonStatus) {
+            <div class="status-pill" [class.error]="comparisonStatus === 'Failed'" [class.done]="comparisonStatus.startsWith('Done')">
+              @if (computingComparisons) { <span class="dot pulse"></span> }
+              @if (!computingComparisons && comparisonStatus.startsWith('Done')) { <span class="dot done-dot"></span> }
+              {{ comparisonStatus }}
+            </div>
           }
-          Test Telegram
-        </button>
-        @if (telegramConfigured === false) {
-          <span class="tg-status not-configured">Not configured</span>
-        } @else if (telegramConfigured === true) {
-          <span class="tg-status configured">Connected</span>
-        }
-        @if (telegramStatus) {
-          <span class="tg-status" [class.sent]="telegramStatus === 'Sent!'" [class.err]="telegramStatus !== 'Sent!'">
-            {{ telegramStatus }}
-          </span>
-        }
+
+          <div class="tg-test">
+            <button class="btn-tg" (click)="sendTelegram()" [disabled]="sendingTelegram"
+                    [title]="telegramConfigured === false ? 'Telegram not configured — set TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID in Railway' : 'Send top deals digest to Telegram now'">
+              @if (sendingTelegram) {
+                <span class="spinner-tg"></span>
+              } @else {
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+              }
+              Test Telegram
+            </button>
+            @if (telegramConfigured === false) {
+              <span class="tg-status not-configured">Not configured</span>
+            } @else if (telegramConfigured === true) {
+              <span class="tg-status configured">Connected</span>
+            }
+            @if (telegramStatus) {
+              <span class="tg-status" [class.sent]="telegramStatus === 'Sent!'" [class.err]="telegramStatus !== 'Sent!'">
+                {{ telegramStatus }}
+              </span>
+            }
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
 
-  @if (listings.length > 0) {
-    <app-results [listings]="listings" [total]="total" [page]="page" [pageSize]="50" [opportunitiesMode]="true" (pageChange)="changePage($event)" />
-  }
-  @if (!listings.length && !computingComparisons && !comparisonStatus) {
-    <div class="opps-intro">
-      <div class="opps-icon">
-        <svg viewBox="0 0 48 48" fill="none">
-          <path d="M24 6l4.24 8.6L38 16.18l-7 6.82 1.65 9.64L24 28.1l-8.65 4.54L17 23l-7-6.82 9.76-1.58L24 6z"
-                stroke="var(--amber)" stroke-width="2" stroke-linejoin="round" fill="rgba(245,158,11,0.08)"/>
-        </svg>
-      </div>
-      <h3>Find undervalued listings</h3>
-      <p>The comparison engine benchmarks each listing against similar properties in the same city and room count using actual sold transaction data from nadlan.gov.il.</p>
-      <ol>
-        <li>Run a Scan first (Search tab) to fill the database</li>
-        <li>Click <strong>Run Comparison Engine</strong> — takes ~3 seconds</li>
-        <li>Browse deals sorted by biggest discount, with a "why" per row</li>
-        <li>Use the <strong>WhatsApp share</strong> button to send deals to friends</li>
-      </ol>
-    </div>
-  }
-}
+      @if (listings.length > 0) {
+        <app-results [listings]="listings" [total]="total" [page]="page" [pageSize]="50" [opportunitiesMode]="true" (pageChange)="changePage($event)" />
+      }
+      @if (!listings.length && !computingComparisons && !comparisonStatus) {
+        <div class="opps-intro">
+          <div class="opps-icon">
+            <svg viewBox="0 0 48 48" fill="none">
+              <path d="M24 6l4.24 8.6L38 16.18l-7 6.82 1.65 9.64L24 28.1l-8.65 4.54L17 23l-7-6.82 9.76-1.58L24 6z"
+                    stroke="var(--amber)" stroke-width="2" stroke-linejoin="round" fill="rgba(245,158,11,0.08)"/>
+            </svg>
+          </div>
+          <h3>Find undervalued listings</h3>
+          <p>The comparison engine benchmarks each listing against similar properties in the same city and room count using actual sold transaction data from nadlan.gov.il.</p>
+          <ol>
+            <li>Run a Scan first (Search tab) to fill the database</li>
+            <li>Click <strong>Run Comparison Engine</strong> — takes ~3 seconds</li>
+            <li>Browse deals sorted by biggest discount, with a "why" per row</li>
+            <li>Use the <strong>WhatsApp share</strong> button to send deals to friends</li>
+          </ol>
+        </div>
+      }
+    }
 
-@if (mode === 'settings') {
-  <app-settings />
-}
+    @if (mode === 'settings') {
+      <app-settings />
+    }
 
-@if (mode === 'global-data') {
-  <app-global-data />
-}
+    @if (mode === 'global-data') {
+      <app-global-data />
+    }
+
+  </div><!-- /main-content -->
+
+</div><!-- /app-layout -->
