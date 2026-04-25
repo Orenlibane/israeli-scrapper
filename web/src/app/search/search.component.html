@@ -26,6 +26,20 @@
     </div>
   } @else if (stats) {
     <div class="dash-page">
+
+      <!-- Context banner -->
+      @if (dashboardContextLabel) {
+        <div class="dash-context">
+          <svg viewBox="0 0 16 16" fill="none"><path d="M8 1.5C5.51 1.5 3.5 3.51 3.5 6c0 3.75 4.5 8.5 4.5 8.5s4.5-4.75 4.5-8.5c0-2.49-2.01-4.5-4.5-4.5zM8 7.5a1.5 1.5 0 110-3 1.5 1.5 0 010 3z" stroke="currentColor" stroke-width="1.3"/></svg>
+          Showing stats for <strong>{{ dashboardContextLabel }}</strong>
+          <button class="ctx-clear" (click)="clearStatsFilter()">
+            <svg viewBox="0 0 12 12" fill="none"><path d="M9 3L3 9M3 3l6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            All cities
+          </button>
+        </div>
+      }
+
+      <!-- KPIs -->
       <div class="dash-kpis">
         <div class="kpi-card">
           <div class="kpi-icon blue">
@@ -36,10 +50,11 @@
         </div>
         <div class="kpi-card">
           <div class="kpi-icon muted">
-            <svg viewBox="0 0 20 20" fill="none"><path d="M10 3v14M3 10h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            <svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M7 10h6M10 7v6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
           </div>
           <div class="kpi-val">{{ stats.totalWithComparisons | number }}</div>
-          <div class="kpi-lbl">With comparisons</div>
+          <div class="kpi-lbl">Compared</div>
+          <div class="kpi-sub">{{ distributionPct(stats.totalWithComparisons) }}% of total</div>
         </div>
         <div class="kpi-card fresh">
           <div class="kpi-icon green">
@@ -54,56 +69,143 @@
           </div>
           <div class="kpi-val">{{ totalDeals | number }}</div>
           <div class="kpi-lbl">Deals found</div>
+          <div class="kpi-sub">{{ distributionPct(totalDeals) }}% of compared</div>
         </div>
       </div>
 
+      <!-- Row 1: Donut + Trend -->
       <div class="dash-grid">
+
+        <!-- Market distribution donut -->
+        <div class="dash-card">
+          <div class="dash-card-header">
+            <svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="10" r="4" stroke="currentColor" stroke-width="1.5"/></svg>
+            <h3>Market classification</h3>
+          </div>
+          <div class="donut-section">
+            <svg class="donut-svg" viewBox="0 0 100 100">
+              @for (seg of donutSegments; track seg.classification) {
+                <circle
+                  r="42" cx="50" cy="50"
+                  fill="none"
+                  [attr.stroke]="seg.color"
+                  stroke-width="14"
+                  [attr.stroke-dasharray]="seg.dashArray"
+                  [attr.stroke-dashoffset]="seg.dashOffset"
+                  transform="rotate(-90 50 50)"
+                  stroke-linecap="butt"
+                />
+              }
+              <!-- Center label -->
+              <text x="50" y="47" text-anchor="middle" fill="#ddeaf8" font-size="14" font-weight="700">{{ stats.totalWithComparisons | number }}</text>
+              <text x="50" y="58" text-anchor="middle" fill="#5c7c9c" font-size="6.5">compared</text>
+            </svg>
+            <div class="donut-legend">
+              @for (seg of donutSegments; track seg.classification) {
+                <div class="legend-row">
+                  <span class="legend-dot" [style.background]="seg.color"></span>
+                  <span class="legend-lbl">{{ classLabel(seg.classification) }}</span>
+                  <span class="legend-count">{{ seg.count | number }}</span>
+                  <span class="legend-pct">{{ seg.pct }}%</span>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- New listings trend (14 days) -->
         <div class="dash-card">
           <div class="dash-card-header">
             <svg viewBox="0 0 20 20" fill="none"><path d="M3 15l4-6 4 3 3-5 3 2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            <h3>Classification breakdown</h3>
+            <h3>New listings — last 14 days</h3>
           </div>
-          <div class="dist-list">
-            @for (d of stats.distribution; track d.classification) {
-              <div class="dist-row">
-                <div class="dist-meta">
-                  <span class="badge mkt" [ngClass]="classColor(d.classification)">{{ classLabel(d.classification) }}</span>
-                  <span class="dist-count">{{ d.count | number }}</span>
-                  <span class="dist-pct">{{ distributionPct(d.count) }}%</span>
-                </div>
-                <div class="dist-bar-bg">
-                  <div class="dist-bar" [ngClass]="classColor(d.classification)"
-                       [style.width.%]="distributionPct(d.count)"></div>
-                </div>
+          @if (trendBars.length) {
+            <div class="trend-chart">
+              <div class="trend-bars">
+                @for (b of trendBars; track b.label) {
+                  <div class="trend-col" [title]="b.label + ': ' + b.count + ' new listings'">
+                    <span class="trend-count">{{ b.count }}</span>
+                    <div class="trend-bar-wrap">
+                      <div class="trend-bar" [style.height.%]="b.heightPct"></div>
+                    </div>
+                    <span class="trend-label">{{ b.label }}</span>
+                  </div>
+                }
               </div>
-            }
-          </div>
+            </div>
+          } @else {
+            <div class="empty-chart">No data for this period</div>
+          }
         </div>
 
+      </div>
+
+      <!-- Row 2: City table -->
+      <div class="dash-card">
+        <div class="dash-card-header">
+          <svg viewBox="0 0 20 20" fill="none"><path d="M10 2l1.8 3.6L16 6.4l-3 2.9.7 4.1-3.7-2-3.7 2 .7-4.1-3-2.9 4.2-.8L10 2z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+          <h3>City overview</h3>
+          <span class="card-sub">top {{ cityTableRows.length }} cities by listing volume</span>
+        </div>
+        <div class="city-overview-table">
+          <div class="cot-head">
+            <span>City</span>
+            <span>Listings</span>
+            <span>Avg ₪/m²</span>
+            <span>Deals</span>
+            <span>Deal %</span>
+            <span class="cot-bar-col">Volume</span>
+          </div>
+          @for (c of cityTableRows; track c.cityRaw) {
+            <div class="cot-row" (click)="params.cityId = params.cityId === findCityId(c.cityRaw) ? 0 : findCityId(c.cityRaw); loadStats()"
+                 [class.cot-selected]="params.cityId === findCityId(c.cityRaw)">
+              <span class="cot-city">{{ c.cityRaw }}</span>
+              <span class="cot-num">{{ c.listingCount | number }}</span>
+              <span class="cot-sqm">{{ c.avgPriceSqm | number }}</span>
+              <span class="cot-deals" [class.has-deals]="c.dealCount > 0">{{ c.dealCount }}</span>
+              <span class="cot-pct" [class.has-deals]="c.dealShare > 0">{{ c.dealShare }}%</span>
+              <div class="cot-bar-col">
+                <div class="cot-bar-bg">
+                  <div class="cot-bar" [style.width.%]="c.barPct"></div>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Row 3: Top deals leaderboard -->
+      @if (stats.topDealCities.length) {
         <div class="dash-card">
           <div class="dash-card-header">
-            <svg viewBox="0 0 20 20" fill="none"><path d="M10 2l1.8 3.6L16 6.4l-3 2.9.7 4.1-3.7-2-3.7 2 .7-4.1-3-2.9 4.2-.8L10 2z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
-            <h3>Top cities by deals</h3>
+            <svg viewBox="0 0 20 20" fill="none"><path d="M3 17V9M7 17V5M11 17V8M15 17V3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+            <h3>Best deal cities</h3>
+            <span class="card-sub">cities with most below-market listings</span>
           </div>
-          <div class="leader-table">
-            <div class="leader-head">
-              <span>City</span>
-              <span>Deals</span>
-              <span>Avg discount</span>
-              <span>Avg days listed</span>
-            </div>
+          <div class="deal-leader">
             @for (c of stats.topDealCities; track c.cityRaw; let i = $index) {
-              <div class="leader-row">
-                <span class="leader-rank">{{ i + 1 }}</span>
-                <span class="leader-city">{{ c.cityRaw }}</span>
-                <span class="leader-deals">{{ c.dealCount }}</span>
-                <span class="leader-discount">-{{ c.avgDiscount }}%</span>
-                <span class="leader-days">{{ c.avgDaysListed }}d</span>
+              <div class="dl-row">
+                <span class="dl-rank" [class.top3]="i < 3">{{ i + 1 }}</span>
+                <span class="dl-city">{{ c.cityRaw }}</span>
+                <div class="dl-badges">
+                  <span class="dl-badge deals">{{ c.dealCount }} deals</span>
+                  <span class="dl-badge discount">-{{ c.avgDiscount }}% avg</span>
+                  <span class="dl-badge days">{{ c.avgDaysListed }}d avg listed</span>
+                </div>
+                <div class="dl-bar-bg">
+                  <div class="dl-bar" [style.width.%]="(c.dealCount / stats.topDealCities[0].dealCount) * 100"></div>
+                </div>
               </div>
             }
           </div>
         </div>
-      </div>
+      }
+
+    </div>
+  } @else {
+    <div class="dash-empty">
+      <svg viewBox="0 0 48 48" fill="none"><rect x="4" y="14" width="40" height="30" rx="3" stroke="var(--border-hi)" stroke-width="2"/><path d="M14 14V10a2 2 0 012-2h16a2 2 0 012 2v4M20 24h8M20 31h5" stroke="var(--muted)" stroke-width="2" stroke-linecap="round"/></svg>
+      <p>No data yet — run a scan first to populate the dashboard.</p>
     </div>
   }
 }

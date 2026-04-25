@@ -35,6 +35,8 @@ export interface Stats {
   recentListings: number
   distribution: { classification: string; count: number }[]
   topDealCities: { cityRaw: string; dealCount: number; avgDiscount: number; avgDaysListed: number }[]
+  cityStats: { cityRaw: string; listingCount: number; avgPriceSqm: number; dealCount: number }[]
+  listingsByDay: { date: string; count: number }[]
 }
 
 export interface ScanParams {
@@ -97,8 +99,11 @@ export class ApiService {
     return this.http.post<{ jobId: string; status: string }>(`${API}/api/jobs/scan`, params)
   }
 
-  getStats(): Observable<Stats> {
-    return this.http.get<Stats>(`${API}/api/stats`)
+  getStats(params?: { cityId?: number; dealType?: string }): Observable<Stats> {
+    const p: Record<string, string> = {}
+    if (params?.cityId)   p['cityId']   = String(params.cityId)
+    if (params?.dealType) p['dealType'] = params.dealType
+    return this.http.get<Stats>(`${API}/api/stats`, { params: p })
   }
 
   triggerComparisons(): Observable<{ status: string; processed: number; skipped: number }> {

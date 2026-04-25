@@ -203,10 +203,81 @@ export class SearchComponent implements OnInit {
 
   loadStats() {
     this.loadingStats = true
-    this.api.getStats().subscribe({
+    this.api.getStats({
+      cityId:   this.params.cityId || undefined,
+      dealType: this.params.dealType || undefined,
+    }).subscribe({
       next: s => { this.stats = s; this.loadingStats = false },
       error: () => { this.loadingStats = false },
     })
+  }
+
+  clearStatsFilter() {
+    this.params.cityId = 0
+    this.loadStats()
+  }
+
+  get dashboardContextLabel(): string {
+    if (!this.params.cityId) return ''
+    return this.quickCities.find(c => c.id === this.params.cityId)?.label ?? ''
+  }
+
+  // ── Chart helpers ────────────────────────────────────────────────────────
+
+  private readonly DONUT_R    = 42
+  private readonly DONUT_CIRC = 2 * Math.PI * 42   // ≈ 263.9
+
+  get donutSegments() {
+    if (!this.stats) return []
+    const total = this.stats.totalWithComparisons || 1
+    const circ = this.DONUT_CIRC
+    const colors: Record<string, string> = {
+      deal:         '#10b981',
+      below_market: '#3b82f6',
+      at_market:    '#4a6680',
+      overpriced:   '#ef4444',
+    }
+    let cumulative = 0
+    return this.stats.distribution.map(d => {
+      const pct  = d.count / total
+      const seg  = {
+        classification: d.classification,
+        color:          colors[d.classification] ?? '#4a6680',
+        dashArray:      `${pct * circ} ${circ}`,
+        dashOffset:     -(cumulative * circ),
+        pct:            Math.round(pct * 100),
+        count:          d.count,
+      }
+      cumulative += pct
+      return seg
+    })
+  }
+
+  get trendBars() {
+    const days = this.stats?.listingsByDay
+    if (!days?.length) return []
+    const max = Math.max(...days.map(d => d.count), 1)
+    return days.map(d => ({
+      label:     d.date.slice(5),     // MM-DD
+      count:     d.count,
+      heightPct: Math.round((d.count / max) * 100),
+    }))
+  }
+
+  findCityId(cityRaw: string | null): number {
+    if (!cityRaw) return 0
+    return this.cities.find(c => c.nameHe === cityRaw || c.name === cityRaw)?.id ?? 0
+  }
+
+  get cityTableRows() {
+    const rows = this.stats?.cityStats
+    if (!rows?.length) return []
+    const max = Math.max(...rows.map(r => r.listingCount), 1)
+    return rows.map(r => ({
+      ...r,
+      barPct:    Math.round((r.listingCount / max) * 100),
+      dealShare: r.listingCount > 0 ? Math.round((r.dealCount / r.listingCount) * 100) : 0,
+    }))
   }
 
   classLabel(c: string): string {
