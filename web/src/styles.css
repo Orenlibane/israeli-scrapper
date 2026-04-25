@@ -1,0 +1,106 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300..900;1,14..32,300..900&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── Dark mode (default) ─────────────────────────────────────────── */
+:root {
+  color-scheme: dark;
+
+  --bg:        #080e1e;
+  --surface:   #0d1530;
+  --elevated:  #111d3e;
+  --border:    #1b2d52;
+  --border-hi: #2a4880;
+  --text:      #e8f0ff;
+  --sub:       #a8bdd6;
+  --muted:     #5a7296;
+  --dim:       #1e3050;
+
+  --blue:       #4f8ef7;
+  --blue-hi:    #79a9ff;
+  --blue-dim:   rgba(79,142,247,0.12);
+  --indigo:     #6366f1;
+  --indigo-dim: rgba(99,102,241,0.12);
+  --purple:     #8b5cf6;
+  --green:      #10b981;
+  --green-dim:  rgba(16,185,129,0.12);
+  --amber:      #f59e0b;
+  --amber-dim:  rgba(245,158,11,0.12);
+  --red:        #f87171;
+  --red-dim:    rgba(248,113,113,0.12);
+  --wa:         #25d366;
+
+  --gradient-header: linear-gradient(135deg, #0d1d40 0%, #0a1530 100%);
+  --gradient-accent: linear-gradient(135deg, #4f8ef7 0%, #6366f1 100%);
+  --gradient-card:   linear-gradient(135deg, rgba(79,142,247,0.06) 0%, rgba(99,102,241,0.04) 100%);
+
+  --radius:    12px;
+  --radius-sm: 8px;
+  --shadow-sm: 0 1px 4px rgba(0,0,0,0.5);
+  --shadow-md: 0 4px 20px rgba(0,0,0,0.6);
+  --shadow-lg: 0 8px 40px rgba(0,0,0,0.7);
+}
+
+/* ── Light mode ──────────────────────────────────────────────────── */
+[data-theme="light"] {
+  color-scheme: light;
+
+  --bg:        #f0f4ff;
+  --surface:   #ffffff;
+  --elevated:  #f8faff;
+  --border:    #dde4f0;
+  --border-hi: #b8c7e0;
+  --text:      #0a1628;
+  --sub:       #374151;
+  --muted:     #6b7a99;
+  --dim:       #e8edf8;
+
+  --blue:       #3b82f6;
+  --blue-hi:    #1d4ed8;
+  --blue-dim:   rgba(59,130,246,0.10);
+  --indigo:     #4f46e5;
+  --indigo-dim: rgba(79,70,229,0.10);
+  --purple:     #7c3aed;
+  --green:      #059669;
+  --green-dim:  rgba(5,150,105,0.10);
+  --amber:      #d97706;
+  --amber-dim:  rgba(217,119,6,0.10);
+  --red:        #dc2626;
+  --red-dim:    rgba(220,38,38,0.10);
+  --wa:         #16a34a;
+
+  --gradient-header: linear-gradient(135deg, #dbeafe 0%, #ede9fe 100%);
+  --gradient-accent: linear-gradient(135deg, #3b82f6 0%, #4f46e5 100%);
+  --gradient-card:   linear-gradient(135deg, rgba(59,130,246,0.04) 0%, rgba(79,70,229,0.02) 100%);
+
+  --shadow-sm: 0 1px 4px rgba(0,0,0,0.07);
+  --shadow-md: 0 4px 20px rgba(0,0,0,0.10);
+  --shadow-lg: 0 8px 40px rgba(0,0,0,0.14);
+}
+
+/* ── Base ────────────────────────────────────────────────────────── */
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  transition: background 0.2s, color 0.2s;
+}
+
+/* ── Scrollbar ───────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-hi); border-radius: 3px; }
+
+/* ── Spinner ─────────────────────────────────────────────────────── */
+.spinner, .spinner-dark {
+  display: inline-block;
+  width: 16px; height: 16px;
+  border: 2px solid var(--border-hi);
+  border-top-color: var(--blue);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }

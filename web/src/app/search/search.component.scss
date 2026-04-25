@@ -1,9 +1,8 @@
-/* ── Page tab nav ────────────────────────────────── */
+/* ── Page tab nav — pill style ───────────────────── */
 .tab-nav {
   display: flex;
-  gap: 0;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 24px;
+  gap: 4px;
+  padding: 20px 0 20px;
   overflow-x: auto;
   scrollbar-width: none;
   &::-webkit-scrollbar { display: none; }
@@ -13,29 +12,31 @@
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  padding: 12px 20px;
+  padding: 8px 18px;
   background: transparent;
-  border: none;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -1px;
+  border: 1px solid transparent;
+  border-radius: 99px;
   color: var(--muted);
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 600;
   font-family: inherit;
   cursor: pointer;
-  transition: color 0.15s, border-color 0.15s;
+  transition: color 0.15s, background 0.15s, border-color 0.15s;
   white-space: nowrap;
 
   svg { width: 14px; height: 14px; flex-shrink: 0; }
 
-  &:hover { color: var(--text); }
-
-  &.active {
-    color: var(--text);
-    border-bottom-color: var(--blue);
+  &:hover {
+    color: var(--sub);
+    background: var(--elevated);
+    border-color: var(--border);
   }
 
-  &:first-child { padding-left: 0; }
+  &.active {
+    color: var(--blue-hi);
+    background: var(--blue-dim);
+    border-color: rgba(79,142,247,0.3);
+  }
 }
 
 /* ── City rail ───────────────────────────────────── */
@@ -72,11 +73,13 @@
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 14px;
+  border-top: 3px solid var(--blue);
   padding: 0;
   margin-bottom: 20px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  box-shadow: var(--shadow-sm);
 }
 
 /* ── Filter sections ─────────────────────────────── */
@@ -535,7 +538,14 @@
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 14px;
+  border-top: 3px solid var(--border);
   padding: 22px 24px;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.15s, transform 0.15s;
+
+  &:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+  &.fresh { border-top-color: var(--green); }
+  &.deal  { border-top-color: var(--amber); }
   display: flex;
   flex-direction: column;
   gap: 8px;
