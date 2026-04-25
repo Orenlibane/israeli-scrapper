@@ -143,7 +143,7 @@ td {
   }
 }
 
-.cell-sqm { font-weight: 600; color: #93c5fd; font-variant-numeric: tabular-nums; }
+.cell-sqm { font-weight: 600; color: var(--blue-hi); font-variant-numeric: tabular-nums; }
 
 .cell-num {
   color: var(--muted);
@@ -185,10 +185,10 @@ td {
   &.owner { background: #1e3a5f; color: #60a5fa; margin-top: 4px; display: block; width: fit-content; }
 
   &.mkt {
-    &.green { background: rgba(16,185,129,0.12); color: #6ee7b7; }
-    &.blue  { background: var(--blue-dim); color: #93c5fd; }
+    &.green { background: var(--green-dim); color: var(--green); }
+    &.blue  { background: var(--blue-dim); color: var(--blue-hi); }
     &.gray  { background: var(--elevated); color: var(--muted); }
-    &.red   { background: var(--red-dim); color: #fca5a5; }
+    &.red   { background: var(--red-dim); color: var(--red); }
   }
 }
 
@@ -208,7 +208,7 @@ td {
   font-size: 11px;
   color: var(--dim);
   margin-top: 3px;
-  &.positive { color: #6ee7b7; }
+  &.positive { color: var(--green); }
 }
 
 .dim { color: var(--dim); }
@@ -224,7 +224,7 @@ td {
   letter-spacing: 0.03em;
 
   &.warn  { background: rgba(245,158,11,0.15); color: var(--amber); border: 1px solid rgba(245,158,11,0.3); }
-  &.error { background: rgba(239,68,68,0.12); color: #fca5a5; border: 1px solid var(--red-dim); }
+  &.error { background: rgba(239,68,68,0.12); color: var(--red); border: 1px solid var(--red-dim); }
 }
 
 .outlier-block {
@@ -240,7 +240,7 @@ td {
   span   { font-size: 11px; line-height: 1.4; }
 
   &.warn  { background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.25); color: var(--amber); }
-  &.error { background: rgba(239,68,68,0.08); border: 1px solid var(--red-dim); color: #fca5a5; }
+  &.error { background: rgba(239,68,68,0.08); border: 1px solid var(--red-dim); color: var(--red); }
 }
 
 /* ── Why cell ───────────────────────────── */

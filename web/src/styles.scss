@@ -2,30 +2,106 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* ── Dark mode (default) ─────────────────────────────────────────── */
 :root {
-  --bg:        #070d1a;
-  --surface:   #0b1424;
-  --elevated:  #0f1c30;
-  --border:    #192f4a;
-  --border-hi: #264870;
-  --text:      #ddeaf8;
-  --muted:     #5c7c9c;
-  --dim:       #2d4860;
-  --blue:      #3b82f6;
-  --blue-hi:   #60a5fa;
-  --blue-dim:  #1e3a5f;
-  --green:     #10b981;
-  --green-dim: #064e3b;
-  --amber:     #f59e0b;
-  --amber-dim: #451a03;
-  --red:       #ef4444;
-  --red-dim:   #450a0a;
-  --wa:        #25d366;
-  --radius:    10px;
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.4);
-  --shadow-md: 0 4px 16px rgba(0,0,0,0.5);
+  color-scheme: dark;
+
+  /* Backgrounds */
+  --bg:        #0c0f18;
+  --surface:   #141922;
+  --elevated:  #1c2333;
+
+  /* Borders */
+  --border:    #252e42;
+  --border-hi: #374560;
+
+  /* Text */
+  --text:      #e4ecf7;
+  --sub:       #96aac6;
+  --muted:     #5b7294;
+  --dim:       #2c3a52;
+
+  /* Aliases used by some components */
+  --text-muted:     var(--muted);
+  --text-secondary: var(--sub);
+
+  /* Primary accent — indigo/violet (more distinctive than plain blue) */
+  --blue:      #7c83fd;
+  --blue-hi:   #a5aaff;
+  --blue-dim:  rgba(124,131,253,0.13);
+
+  /* Additional palette */
+  --indigo:     #6366f1;
+  --indigo-dim: rgba(99,102,241,0.12);
+  --purple:     #a78bfa;
+  --green:      #34d399;
+  --green-dim:  rgba(52,211,153,0.12);
+  --amber:      #fbbf24;
+  --amber-dim:  rgba(251,191,36,0.12);
+  --red:        #f87171;
+  --red-dim:    rgba(248,113,113,0.12);
+  --wa:         #25d366;
+
+  /* Gradients */
+  --gradient-accent: linear-gradient(135deg, #7c83fd 0%, #a78bfa 100%);
+  --gradient-card:   linear-gradient(135deg, rgba(124,131,253,0.06) 0%, rgba(167,139,250,0.03) 100%);
+
+  /* Shape & shadow */
+  --radius:    12px;
+  --radius-sm: 8px;
+  --shadow-sm: 0 1px 4px rgba(0,0,0,0.5);
+  --shadow-md: 0 4px 24px rgba(0,0,0,0.65);
+  --shadow-lg: 0 8px 40px rgba(0,0,0,0.75);
 }
 
+/* ── Light mode ──────────────────────────────────────────────────── */
+[data-theme="light"] {
+  color-scheme: light;
+
+  /* Backgrounds */
+  --bg:        #f2f4fb;
+  --surface:   #ffffff;
+  --elevated:  #eaecf7;
+
+  /* Borders */
+  --border:    #dde1f0;
+  --border-hi: #b8c0d9;
+
+  /* Text */
+  --text:      #0e1328;
+  --sub:       #3a4768;
+  --muted:     #627092;
+  --dim:       #d8ddf0;
+
+  /* Aliases */
+  --text-muted:     var(--muted);
+  --text-secondary: var(--sub);
+
+  /* Primary accent — keep same indigo so identity is consistent */
+  --blue:      #6366f1;
+  --blue-hi:   #4f46e5;
+  --blue-dim:  rgba(99,102,241,0.10);
+
+  --indigo:     #4f46e5;
+  --indigo-dim: rgba(79,70,229,0.10);
+  --purple:     #7c3aed;
+  --green:      #059669;
+  --green-dim:  rgba(5,150,105,0.10);
+  --amber:      #d97706;
+  --amber-dim:  rgba(217,119,6,0.10);
+  --red:        #dc2626;
+  --red-dim:    rgba(220,38,38,0.10);
+  --wa:         #16a34a;
+
+  --gradient-accent: linear-gradient(135deg, #6366f1 0%, #7c3aed 100%);
+  --gradient-card:   linear-gradient(135deg, rgba(99,102,241,0.05) 0%, rgba(124,58,237,0.02) 100%);
+
+  --shadow-sm: 0 1px 4px rgba(0,0,0,0.07);
+  --shadow-md: 0 4px 24px rgba(0,0,0,0.11);
+  --shadow-lg: 0 8px 40px rgba(0,0,0,0.15);
+}
+
+/* ── Base ────────────────────────────────────────────────────────── */
 body {
   background: var(--bg);
   color: var(--text);
@@ -33,8 +109,21 @@ body {
   font-size: 14px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  transition: background 0.22s, color 0.22s;
 }
 
+/* ── Scrollbar ───────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border-hi); border-radius: 3px; }
+
+/* ── Global spinner ──────────────────────────────────────────────── */
+.spinner, .spinner-dark {
+  display: inline-block;
+  width: 16px; height: 16px;
+  border: 2px solid var(--border-hi);
+  border-top-color: var(--blue);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }

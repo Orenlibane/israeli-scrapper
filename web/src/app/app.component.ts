@@ -115,7 +115,7 @@ import { SearchComponent } from './search/search.component'
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 2px 8px rgba(79,142,247,0.35);
+      box-shadow: 0 2px 10px rgba(124,131,253,0.4);
       flex-shrink: 0;
       svg { width: 20px; height: 20px; color: #fff; }
     }

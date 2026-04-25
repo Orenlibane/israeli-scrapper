@@ -209,8 +209,8 @@
   border-radius: 99px;
   flex-shrink: 0;
 
-  &.skill-active   { background: rgba(16,185,129,0.12);  color: var(--green); }
-  &.skill-available { background: rgba(59,130,246,0.12);  color: var(--blue); }
+  &.skill-active   { background: var(--green-dim);  color: var(--green); }
+  &.skill-available { background: var(--blue-dim);  color: var(--blue); }
   &.skill-planned  { background: rgba(71,85,105,0.15);    color: #64748b; }
 }
 
@@ -377,7 +377,7 @@
   font-variant-numeric: tabular-nums;
   font-weight: 500;
 
-  &.blue  { color: #93c5fd; }
+  &.blue  { color: var(--blue-hi); }
   &.green { color: var(--green); }
 }
 
@@ -421,7 +421,7 @@
   flex-shrink: 0;
   letter-spacing: 0.04em;
 
-  &.job-done    { background: rgba(16,185,129,0.12); color: var(--green); }
+  &.job-done    { background: var(--green-dim); color: var(--green); }
   &.job-failed  { background: rgba(248,113,113,0.12); color: var(--red); }
   &.job-running { background: var(--blue-dim); color: var(--blue-hi); }
   &.job-pending { background: rgba(71,85,105,0.15); color: #64748b; }
